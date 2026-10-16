@@ -12,7 +12,7 @@ Kenyan mobile-money users receive scam SMS daily — "wrong number, please rever
 1. As a mobile-money user, I want forwarded SMS messages to appear in my feed automatically, so that I never have to copy-paste to get protection.
 2. As a user, I want a verdict (low/medium/high risk) on every message in plain words, so that I know at a glance what to ignore.
 3. As a user, I want at most three short reasons and one clear action with each verdict, so that I can understand why a message is flagged.
-4. As a user, I want my phone numbers and names redacted before anything reaches the LLM or storage, so that my private data never leaves the system in raw form.
+4. As a user, I want my phone numbers and names replaced by tokens before anything reaches the LLM, and stored only as masked display strings, so that my private data never leaves the system in raw form.
 5. As a user, I want Guard to decide which tools to call per message (entity extraction, graph lookup, lender check, similar-message lookup), so that checks are targeted rather than a fixed pipeline.
 6. As a user, I want a known ring member's message to escalate in risk with evidence ("also reported from N other numbers"), so that I trust the warning.
 7. As a user, I want messages that match no scam pattern judged honestly as legitimate, so that the tool doesn't cry wolf.
@@ -38,7 +38,7 @@ Kenyan mobile-money users receive scam SMS daily — "wrong number, please rever
 21. As a case owner, I want to copy or export the final approved report text, so that I can send it to authorities myself.
 
 ### Language
-22. As a Swahili-speaking user, I want verdict explanations in natural Swahili/Sheng (not literal translation), so that I actually understand the warning.
+22. As a Swahili-speaking user, I want verdict explanations in natural Swahili (not literal translation), so that I actually understand the warning.
 23. As a user, I want one language toggle that switches verdict explanations and report drafts, so that language is a single choice.
 
 ### CLI & demo
@@ -57,24 +57,29 @@ Kenyan mobile-money users receive scam SMS daily — "wrong number, please rever
 
 - **Language**: ≥80% Jac (jac 0.37.21). Only README, `jac.toml`, `.gitignore`, small static assets, small JSON seed/config files are non-Jac. No Python/JS/TS source files.
 - **Endpoints**: every walker auto-exposed as `POST /walker/<name>` (jac-scale). Ingestion is a `:pub` walker with a shared secret field in the JSON body, checked by the walker. Feed/case walkers protected accordingly.
-- **Auth hedge**: `seed` and `reset` are idempotent, and the taxonomy Pattern nodes auto-seed on first ingestion if missing — this removes the unverified assumption about Jac Hammer's per-deploy graph persistence.
-- **LLM**: `openai/gpt-4o-mini` via `[byllm]` in `jac.toml` + `OPENAI_API_KEY` env var; low temperature; `def :pub` spelling; tool calling by passing plain Jac functions via `tools=[...]`. Verdicts cached for the synthetic set; simulator delays sized to OpenAI free-tier rate limits.
+- **Tracer bullet first**: slice 1 is a single tracer proving the core loop end to end — a webhook POST of a message appears in the web feed, deployed on Jac Hammer. The root/auth model (guest root vs per-user JWT, where walkers attach) follows from what that tracer shows about Jac Hammer's runtime, not from assumptions.
+- **Auth model**: read walkers (Feed, graph slice, case read) are `:pub` read-only. All mutating walkers (IngestMessage, seed, reset, case create/edit/approve/discard) require the shared secret in the JSON body — in particular `seed` and `reset` are secret-protected admin walkers. Wrong or missing secret is rejected.
+- **Dedupe**: an incoming message with the same (sender key, template_hash) as an existing Message within a recent window is deduplicated — the existing message id is returned and Guard is not re-run.
+- **Redaction contract**: redaction emits, per identifier found, (a) a **stable salted-hash key** — salted with a server-side salt, deterministic across messages — used for graph matching (Sender identity, LinkedTo, dedupe), and (b) a **masked display string** (e.g. last 3 digits) for UI and storage. The LLM sees only neutral tokens (e.g. `[PHONE_1]`, `[TILL_1]`), never masked values, never raw identifiers.
+- **Idempotent seeding**: `seed` and `reset` are idempotent, and the taxonomy Pattern nodes auto-seed on first ingestion if missing — this removes the unverified assumption about Jac Hammer's per-deploy graph persistence.
+- **LLM**: `openai/gpt-4o-mini` via `[byllm]` in `jac.toml` + `OPENAI_API_KEY` env var; low temperature; `def :pub` spelling; tool calling by passing plain Jac functions via `tools=[...]`. Simulator delays sized to OpenAI free-tier rate limits.
+- **Verdict caching**: the cache applies only to the labelled synthetic demo set (keyed by message); cached verdicts are labelled as cached in the feed/UI so the demo is honest. Live messages — anything not in the labelled set — always hit the LLM.
 - **Guard tools**: `extract_entities` (typed), `lookup_graph`, `check_lender` (against `config/lenders.json` placeholders), `similar_messages` (template hash). Guard writes edges (SentBy, Mentions, MatchesPattern) and updates LinkedTo/counts after the verdict.
-- **Typed Verdict**: risk (`low|medium|high`), scam_type (taxonomy label or `none`), ≤3 reasons, one action, `explanation_en`, `explanation_sw` (natural Swahili/Sheng, from day one), entities (kind + masked value), optional ring_id.
+- **Typed Verdict**: risk (`low|medium|high`), scam_type (taxonomy label or `none`), ≤3 reasons, one action, `explanation_en`, `explanation_sw` (natural Swahili only — input messages may be Sheng, but generated output is never Sheng), entities (kind + masked value), optional ring_id.
 - **Ring rule**: a connected cluster of LinkedTo edges with ≥3 senders; escalates risk with evidence text.
 - **Recovery**: gather case messages → typed timeline → typed facts → typed Report draft (recipients as config labels, `body_en`, `body_sw`) → status `awaiting_approval` → wait. On approve: `approved` and expose final text for copying. Nothing sent externally.
 - **Graph model**: nodes Message, Sender, PayTarget, Pattern, Lender, Case; edges SentBy, Mentions, MatchesPattern, PartOfCase, LinkedTo. Store redacted text only.
 - **Client**: Jac client (React-compiled), mobile-first at 360px, bottom tab bar (Feed, Check, Graph, Cases), poll Feed every 3–5s, 44px tap targets, hand-written SVG for the 10–20 node graph view. No PWA effort (jac-client has no documented manifest support).
-- **CLI**: thin launcher calling `jac run --entry <command>` per command; logic stays in Jac. Commands: check, simulate, graph, case start/show/approve, `--lang sw`.
+- **CLI**: the CLI is a thin HTTP client — it calls the deployed walker endpoints (`POST /walker/<name>`) over HTTP with a configurable base URL (env var or flag), so CLI and web demonstrably share one backend. Launcher runs via `jac run --entry <command>`; command logic stays in Jac. Commands: check, simulate, graph, case start/show/approve, `--lang sw`.
 - **Config**: `config/lenders.json` and `config/report_channels.json` with clearly marked placeholders (no invented real lender names/short codes).
 - **Taxonomy**: 8 seeded Patterns (wrong_number_reversal, fee_before_loan, fake_prize_promo, fake_confirmation, impersonation, fake_job_or_visa_fee, sim_swap_otp_request, legit_transaction/legit_notice). Synthetic set: ~40 messages (≈24 scam / 16 legit) in English/Swahili/Sheng, fictional numbers only, including 3 messages sharing one pay target across different senders (the demo ring).
-- **Working agreements**: `jac check` + run after every change; commit/push after every demoable slice; maintain `docs/jac-features.md` (feature usage + 0.34→0.37 differences); keep an API contract in-repo; feature freeze ~11:00–12:00 EAT, submit by 14:30 EAT.
+- **Working agreements**: `jac check` + run after every change; commit/push after every demoable slice; maintain `docs/jac-features.md` (feature usage + 0.34→0.37 differences); keep an API contract in-repo; **first gate: hello-world deployed on Jac Hammer with env vars (OPENAI_API_KEY etc.) working**; feature freeze ~11:00–12:00 EAT, submit by 14:30 EAT.
 
 ## Testing Decisions
 
 - **Single seam**: all tests go through walkers. `jac test` blocks (in `.test.jac` annex files) spawn walkers against a fresh graph root and assert on the typed reports. No unit-testing of internals.
 - **Eval**: the labelled synthetic set is executed via `jac test` — one case per message asserting `expected_risk` and `expected_scam_type` (cached verdicts keep it fast/deterministic).
-- **Integration checks**: ingestion with wrong/missing secret is rejected; a 3-message ring from different senders produces LinkedTo edges and escalation; Recovery stops in `awaiting_approval` and only approves on the approve action.
+- **Test cap**: exactly three integration checks plus one eval. The integration checks: (1) ingestion with wrong/missing secret is rejected; (2) a 3-message ring from different senders produces LinkedTo edges and escalation; (3) Recovery stops in `awaiting_approval` and only finalizes on approve. The eval is **threshold-based**, not per-message: accuracy over the labelled synthetic set must clear an agreed threshold (target ≥ 85%). No other tests — time is the constraint.
 - **Manual acceptance**: feed updates within ~5s at 360px; forwarder app posts through to the feed live; CLI and web hit the same walkers.
 
 ## Out of Scope

@@ -14,7 +14,7 @@ Canonical domain vocabulary. Use these terms exactly in issues, verdicts, tests 
 - **Case** — Recovery's working object: the timeline, facts and drafted report for one reported loss, in draft → awaiting approval → approved (or discarded).
 - **Forwarder** — an Android app that forwards each incoming SMS to Pesa Shield's ingestion webhook.
 - **Redaction** — masking phone numbers and names (keeping the last 3 digits) before any text reaches the LLM or is stored. Only redacted text exists in Pesa Shield.
-- **Sheng** — Kenyan Swahili-English slang mix. Explanations and reports must read as natural Sheng/Swahili, never literal translation.
+- **Sheng** — Kenyan Swahili-English slang mix. Synthetic messages may arrive in Sheng, but generated output (explanations, reports) is always natural Swahili, never Sheng.
 - **Simulator** — the CLI command that streams the synthetic message set to the ingestion endpoint, used as the demo safety net.
 
 ## Judgement terms
