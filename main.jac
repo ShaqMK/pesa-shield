@@ -8,8 +8,11 @@ Combines the server-side endpoints with the client-side UI.
 import from endpoints {
     Sender,
     Message,
+    Pattern,
     IngestMessage,
-    WebFeed
+    WebFeed,
+    Seed,
+    Reset
 }
 
 import from .frontend {
@@ -17,5 +20,5 @@ import from .frontend {
 }
 
 def:pub app -> JsxElement {
-    <ClientApp/>
+    return <ClientApp/>;
 }

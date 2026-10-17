@@ -1,28 +1,46 @@
-"""Integration checks for the T1 tracer (spawn walkers on root).
+"""Integration checks for ingestion (spawn walkers on root).
 
 Per the spec's testing decisions, tests go through walkers and assert on
 reports; no internals are tested directly.
 """
 
-test "webhook rejects wrong or missing secret" {
-    try {
-        w = root spawn IngestMessage(secret="nope", sender="+254700111222", text="hi");
-        assert False, ("wrong secret must raise", w.reports);
-    } except RuntimeError as e {
-        assert "forbidden" in str(e), ("wrong secret rejection message", str(e));
-    }
-    try {
-        w2 = root spawn IngestMessage(sender="+254700111222", text="hi");
-        assert False, ("missing secret must raise", w2.reports);
-    } except RuntimeError as e {
-        assert "forbidden" in str(e), ("missing secret rejection message", str(e));
+import os;
+
+
+def _use_test_secrets {
+    os.environ["PESA_WEBHOOK_SECRET"] = "test-webhook-secret";
+    os.environ["PESA_ADMIN_SECRET"] = "test-admin-secret";
+    os.environ["PESA_HMAC_SECRET"] = "test-hmac-secret";
+}
+
+
+"""Integration check 1: wrong or missing credential is rejected at every tier."""
+test "wrong or missing credential is rejected" {
+    _use_test_secrets();
+    attempts = [
+        ("webhook wrong", IngestMessage(secret="nope", sender="+254700111222", text="hi")),
+        ("webhook missing", IngestMessage(sender="+254700111222", text="hi")),
+        ("seed wrong", Seed(secret="nope")),
+        ("seed missing", Seed()),
+        ("seed with webhook secret", Seed(secret="test-webhook-secret")),
+        ("reset wrong", Reset(secret="nope")),
+        ("reset missing", Reset())
+    ];
+    for (name, w) in attempts {
+        err = "";
+        try {
+            root spawn w;
+        } except RuntimeError as e {
+            err = str(e);
+        }
+        assert "forbidden" in err, (name, err);
     }
 }
 
 test "webhook creates message and returns analysing" {
-    _secret_override = "test-secret";
+    _use_test_secrets();
     w = root spawn IngestMessage(
-        secret="test-secret",
+        secret="test-webhook-secret",
         sender="+254700111222",
         text="fee before loan scam text 0700123456"
     );
@@ -32,16 +50,16 @@ test "webhook creates message and returns analysing" {
 }
 
 test "webhook is idempotent on identical message" {
-    _secret_override = "test-secret";
-    a = root spawn IngestMessage(secret="test-secret", sender="+254700111222", text="dedupe me 0700123456");
-    b = root spawn IngestMessage(secret="test-secret", sender="+254700111222", text="dedupe me 0700123456");
+    _use_test_secrets();
+    a = root spawn IngestMessage(secret="test-webhook-secret", sender="+254700111222", text="dedupe me 0700123456");
+    b = root spawn IngestMessage(secret="test-webhook-secret", sender="+254700111222", text="dedupe me 0700123456");
     assert a.reports[0]["id"] == b.reports[0]["id"], ("dedupe must return the existing id", a.reports, b.reports);
 }
 
 test "feed returns messages newest first with analysing status" {
-    _secret_override = "test-secret";
-    a = root spawn IngestMessage(secret="test-secret", sender="+254700111222", text="msg one 0700123456");
-    b = root spawn IngestMessage(secret="test-secret", sender="+254700444555", text="msg two 0711555666");
+    _use_test_secrets();
+    a = root spawn IngestMessage(secret="test-webhook-secret", sender="+254700111222", text="msg one 0700123456");
+    b = root spawn IngestMessage(secret="test-webhook-secret", sender="+254700444555", text="msg two 0711555666");
     feed = root spawn WebFeed(limit=50);
     assert len(feed.reports) >= 2;
     for r in feed.reports {

@@ -1,156 +1,177 @@
-"""Pesa Shield - Server-side data layer (T1 tracer).
+"""Pesa Shield - Server-side data layer.
 
-The ingestion webhook and the feed. Nodes live on the shared guest root:
-an anonymous `:pub` caller runs on the one shared graph, which is the model
-this tracer settles empirically for Jac Hammer (forwarder posts anonymous,
-web feed reads anonymous, everyone sees one feed).
+The ingestion webhook, the feed and the admin walkers. Nodes live on the
+shared guest root: an anonymous `:pub` caller runs on the one shared graph,
+the model the T1 tracer settled for Jac Hammer (forwarder posts anonymous,
+web feed reads anonymous, everyone sees one feed). Credentials are checked
+in the request body per tier (webhook secret, admin secret).
 
-Names follow GLOSSARY.md. Redaction: mask display strings only in this slice;
-raw sender strings are never stored.
+Names follow GLOSSARY.md. Redaction follows the contract in redaction.jac:
+only HMAC keys, masked display strings and neutral-token text are stored.
 """
 
 import os;
+import hmac;
 import from datetime {
     datetime
 }
+import from taxonomy {
+    PATTERN_TAXONOMY
+}
+import from redaction {
+    identify_sender,
+    redact
+}
 
 node Sender {
-    has display: str;  # masked display string, never the raw identifier
+    has key: str,  # HMAC sender key, never the raw identifier
+        display: str;  # masked display string
 }
 
 node Message {
-    has display: str,  # redacted display text
+    has display: str,  # masked text for UI
+        llm_text: str,  # neutral-token text, the only text Guard's LLM sees
+        fingerprint: str,  # dedupe identity of the redacted text
+        entities: list[dict[str, str]],  # kind, key, display, token
+        sender_key: str,
         sender_display: str,
         status: str,  # analysing -> eventually a verdict lands here
         created_at: str;
 }
 
-# Test hook: tests set this to bypass the process environment.
-glob _secret_override: str = "";
+node Pattern {
+    has name: str,  # taxonomy label, e.g. fee_before_loan
+        title: str,
+        description: str;
+}
 
-# Simple per-window rate limiter for the public intake point.
-glob RATE_WINDOW_MAX: int = 30;
+glob MAX_TEXT_LEN: int = 2000;
+glob DEDUPE_WINDOW_SEC: float = 600.0;
 glob RATE_WINDOW_SEC: float = 60.0;
-glob _rate_hits: dict[float, str] = {};
+# Per-window call timestamps by bucket. In-process: one Hammer instance.
+glob _rate_hits: dict[str, list[float]] = {};
 
 
-def _now() -> float {
+def _now -> float {
     return datetime.now().timestamp();
 }
 
 
-def _rate_ok(client_id: str) -> bool {
-    t: float = _now();
-    fresh = [(ts, cid) for (ts, cid) in
-             [(t - k, c) for (k, c) in _rate_hits.items()]
-             if t - ts < RATE_WINDOW_SEC and cid == client_id];
-    if len(fresh) >= RATE_WINDOW_MAX {
-        return False;
+"""Reject unless `given` matches the secret configured in env var `env_name`.
+
+One helper for every credential tier (webhook, admin). Raised exceptions
+surface as ok=false rejections on the wire.
+"""
+def _require_secret(env_name: str, given: str) {
+    expected = os.getenv(env_name, "");
+    if not expected {
+        raise RuntimeError(f"not_configured: {env_name} is not set on the server");
     }
-    _rate_hits[t] = client_id;
-    # opportunistic cleanup
-    stale = [k for k in _rate_hits if t - k >= RATE_WINDOW_SEC];
-    for k in stale {
-        del _rate_hits[k];
+    if not hmac.compare_digest(given.encode(), expected.encode()) {
+        raise RuntimeError("forbidden: wrong or missing secret");
     }
-    return True;
 }
 
 
-"""Mask a raw phone number or name to a display string (last 3 digits)."""
-def mask_sender(raw: str) -> str {
-    only_digits = "".join(c for c in raw if c.isdigit());
-    if len(only_digits) >= 4 {
-        return "…" + only_digits[-3:];
+"""Reject once `bucket` has had `limit` calls within the rate window."""
+def _require_rate(bucket: str, limit: int) {
+    t = _now();
+    hits = [h for h in _rate_hits.get(bucket, []) if t - h < RATE_WINDOW_SEC];
+    if len(hits) >= limit {
+        _rate_hits[bucket] = hits;
+        raise RuntimeError("rate_limited: too many requests, slow down");
     }
-    return raw[:1] + "***";
+    hits.append(t);
+    _rate_hits[bucket] = hits;
 }
 
 
-"""Redact phone-number-like digits out of the display text."""
-def mask_text(raw: str) -> str {
-    out = list(raw);
-    runs = [i for i in range(len(raw)) if raw[i].isdigit()];
-    if len(runs) < 4 {
-        return raw;
-    }
-    # mask all but the last 3 digits in the whole message
-    keep = set(runs[-3:]);
-    for i in runs {
-        if i not in keep {
-            out[i] = "*";
+def _pattern_count -> int {
+    return len([root -->[?:Pattern]]);
+}
+
+
+"""Create any missing taxonomy Patterns and refresh existing ones. Idempotent.
+
+Returns how many Patterns were created.
+"""
+def seed_patterns -> int {
+    existing = {p.name: p for p in [root -->[?:Pattern]]};
+    created = 0;
+    for spec in PATTERN_TAXONOMY {
+        pattern = existing.get(spec["name"]);
+        if pattern is None {
+            root ++> Pattern(
+                name=spec["name"],
+                title=spec["title"],
+                description=spec["description"]
+            );
+            created += 1;
+        } else {
+            pattern.title = spec["title"];
+            pattern.description = spec["description"];
         }
     }
-    return "".join(out);
+    return created;
 }
 
 
 """Public webhook the forwarder posts to.
 
-Body fields: secret, sender, text, client (optional id for rate limit).
-Returns { id, status: analysing } immediately; Guard analysis is a later
-slice. Wrong or missing secret rejects with ok=false (403).
+Body fields: secret, sender, text. Returns { id, status: analysing }
+immediately; Guard analysis is a later slice. A duplicate (same sender key,
+identical redacted text within the window) returns the existing id with
+dedupe=true. Wrong or missing secret, invalid input and rate-limit overflow
+reject with ok=false.
 """
 walker:pub IngestMessage {
     has secret: str = "",
         sender: str = "",
         text: str = "",
-        client: str = "anon",
         reports: list[dict[str, str]] = [];
 
     can ingest with Root entry {
-        # Raised exceptions surface as ok=false rejections on the wire.
-        expected = _secret_override if _secret_override else os.getenv("PESA_WEBHOOK_SECRET", "");
-        if not expected {
-            raise RuntimeError("webhook_not_configured: PESA_WEBHOOK_SECRET is not set on the server");
+        _require_secret("PESA_WEBHOOK_SECRET", self.secret);
+        if not self.text.strip() or not self.sender.strip() {
+            raise ValueError("invalid: sender and text are required");
         }
-        if self.secret != expected {
-            raise RuntimeError("forbidden: wrong or missing webhook secret");
+        if len(self.text) > MAX_TEXT_LEN {
+            raise ValueError(f"invalid: text longer than {MAX_TEXT_LEN} characters");
         }
-        if not self.text.strip() {
-            raise ValueError("invalid: text is required");
-        }
-        cid = self.client + "|" + self.sender;
-        if not _rate_ok(cid) {
-            raise RuntimeError("rate_limited: too many messages, slow down");
-        }
+        identity = identify_sender(self.sender);
+        redacted = redact(self.text);
+        existing = [root -->[?:Sender, key == identity.key]];
 
-        sdis = mask_sender(self.sender);
-        mdis = mask_text(self.text);
-
-        # Get this sender's messages (Messages hang off the Sender node).
-        senders = [root -->][?:Sender];
-        smsgs = [m for s in senders for m in [s -->][?:Message]];
-
-        # Dedupe on (sender display, byte-identical text) within the window.
-        cutoff = _now() - 600.0;
-        for m in smsgs {
-            if (
-                m.sender_display == sdis
-                and m.display == mdis
-                and float(m.created_at) > cutoff
-            ) {
+        # Dedupe before the rate limit so forwarder retries are never rejected.
+        cutoff = _now() - DEDUPE_WINDOW_SEC;
+        prior = [existing[0] -->[?:Message]] if existing else [];
+        for m in prior {
+            if m.fingerprint == redacted.fingerprint and float(m.created_at) > cutoff {
                 report {"id": jid(m), "status": m.status, "dedupe": "true"};
                 disengage;
             }
         }
 
-        existing: Sender | None = None;
-        for s in [root -->][?:Sender] {
-            if s.display == sdis {
-                existing = s;
-                break;
-            }
+        _require_rate("ingest", int(os.getenv("PESA_INGEST_RATE_MAX", "30")));
+        # Auto-seed so a redeploy that lost the graph can't leave it unseeded.
+        if _pattern_count() < len(PATTERN_TAXONOMY) {
+            seed_patterns();
         }
-        if existing is None {
-            existing = root ++> Sender(display=sdis);
-        }
-        msg = existing ++> Message(
-            display=mdis,
-            sender_display=sdis,
+
+        sender = existing[0] if existing else (
+            root ++> Sender(key=identity.key, display=identity.display)
+        )[0];
+
+        msg = (sender ++> Message(
+            display=redacted.display,
+            llm_text=redacted.llm_text,
+            fingerprint=redacted.fingerprint,
+            entities=redacted.entities,
+            sender_key=identity.key,
+            sender_display=identity.display,
             status="analysing",
             created_at=str(_now())
-        );
+        ))[0];
         report {"id": jid(msg), "status": "analysing"};
     }
 }
@@ -163,11 +184,9 @@ walker:pub WebFeed {
 
     can collect with Root entry {
         # Messages live under Sender nodes, which live on the root.
-        senders = [root -->][?:Sender];
-        msgs = [m for s in senders for m in [s -->][?:Message]];
-        msgs = sorted(msgs, key=lambda (m: Message) -> float { float(m.created_at) });
-        msgs = msgs[::-1][:self.limit];
-        for m in msgs {
+        msgs = [root -->[?:Sender]-->[?:Message]];
+        msgs = sorted(msgs, key=lambda m: Message : float(m.created_at), reverse=True);
+        for m in msgs[:self.limit] {
             report {
                 "id": jid(m),
                 "display": m.display,
@@ -176,5 +195,42 @@ walker:pub WebFeed {
                 "created_at": m.created_at
             };
         }
+    }
+}
+
+
+"""Admin: seed the taxonomy Patterns. Idempotent; requires the admin secret."""
+walker:pub Seed {
+    has secret: str = "",
+        reports: list[dict[str, int]] = [];
+
+    can run with Root entry {
+        _require_secret("PESA_ADMIN_SECRET", self.secret);
+        created = seed_patterns();
+        report {"created": created, "patterns": _pattern_count()};
+    }
+}
+
+
+"""Admin: wipe ingested data (Senders, Messages) and rate-limit state, then
+re-seed the Patterns. Idempotent; requires the admin secret.
+"""
+walker:pub Reset {
+    has secret: str = "",
+        reports: list[dict[str, int]] = [];
+
+    can run with Root entry {
+        _require_secret("PESA_ADMIN_SECRET", self.secret);
+        removed = 0;
+        for s in [root -->[?:Sender]] {
+            for m in [s -->[?:Message]] {
+                del m;
+                removed += 1;
+            }
+            del s;
+        }
+        _rate_hits.clear();
+        seed_patterns();
+        report {"removed_messages": removed, "patterns": _pattern_count()};
     }
 }
