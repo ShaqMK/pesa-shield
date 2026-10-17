@@ -22,6 +22,9 @@ import from .screens.MessageScreen {
 import from .screens.CheckScreen {
     CheckScreen
 }
+import from .screens.GraphScreen {
+    GraphScreen
+}
 import from .screens.ComingSoon {
     ComingSoon
 }
@@ -80,10 +83,7 @@ def:pub app -> JsxElement {
                     <Route path="/" element={<FeedScreen/>}/>
                     <Route path="/message/:id" element={<MessageScreen lang={lang}/>}/>
                     <Route path="/check" element={<CheckScreen lang={lang}/>}/>
-                    <Route
-                        path="/graph"
-                        element={<ComingSoon title="Scam rings" note="The ring graph view arrives in the next slice."/>}
-                    />
+                    <Route path="/graph" element={<GraphScreen/>}/>
                     <Route
                         path="/cases"
                         element={<ComingSoon title="Cases" note="Lost money? Recovery cases arrive in a later slice."/>}

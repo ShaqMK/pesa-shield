@@ -42,6 +42,11 @@ def:pub VerdictPanel(verdict: dict, lang: str) -> JsxElement {
                 </span>
             }}
         </div>
+        {if verdict["escalated"] {
+            <p style={{"margin": "0.5rem 0 0", "fontSize": "0.82rem", "color": "#a61b1b"}}>
+                Risk raised: linked to a scam ring.
+            </p>
+        }}
         <h3 style={{"fontSize": "0.95rem", "margin": "0.8rem 0 0.3rem"}}>Why</h3>
         <ul style={{"margin": "0", "paddingLeft": "1.2rem"}}>
             {for (i, r) in enumerate(reasons) {

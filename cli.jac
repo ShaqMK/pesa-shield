@@ -2,6 +2,7 @@
 
     jac run cli.jac check "<message>" [--lang sw] [--base-url URL] [--token T]
     jac run cli.jac simulate [--delay SEC] [--limit N] [--secret S] [--base-url URL]
+    jac run cli.jac graph [--base-url URL]
 
 Base URL: --base-url, else PESA_BASE_URL, else http://localhost:3000.
 Client token: --token, else PESA_CLIENT_TOKEN. Webhook secret (simulate):
@@ -25,7 +26,8 @@ import from urllib.error {
 
 glob USAGE: str = """usage:
   jac run cli.jac check "<message>" [--lang en|sw] [--base-url URL] [--token T]
-  jac run cli.jac simulate [--delay SEC] [--limit N] [--secret S] [--base-url URL]""",
+  jac run cli.jac simulate [--delay SEC] [--limit N] [--secret S] [--base-url URL]
+  jac run cli.jac graph [--base-url URL]""",
      DATASET_PATH: str = os.path.join(
          os.path.dirname(os.path.abspath(__file__)), "data", "synthetic_messages.json"
      ),
@@ -161,10 +163,37 @@ def simulate(args: CliArgs) -> int {
 }
 
 
+"""Print the scam rings: pay target, linked senders, medium/high reports."""
+def graph(args: CliArgs) -> int {
+    try {
+        view = call_walker(args.base_url, "GraphView", {})[0] as dict;
+    } except URLError as e {
+        print(f"cannot reach {args.base_url}: {e.reason}");
+        return 2;
+    } except RuntimeError as e {
+        print(f"rejected: {e}");
+        return 1;
+    }
+    rings = view["rings"] as list[dict];
+    if not rings {
+        print("No rings yet (a ring needs 3 senders sharing one pay target).");
+        return 0;
+    }
+    print(f"{len(rings)} ring(s):");
+    for r in rings {
+        print(f"  {r['ring_id']}  {r['target']}  senders: {r['senders']}  reports: {r['reports']}");
+    }
+    return 0;
+}
+
+
 def run(argv: list[str]) -> int {
     args = parse_args(argv);
     if args.command == "simulate" {
         return simulate(args);
+    }
+    if args.command == "graph" {
+        return graph(args);
     }
     if args.command == "check" and args.positional {
         try {
@@ -187,5 +216,7 @@ def run(argv: list[str]) -> int {
 
 
 with entry:__main__ {
+    # Masked values use "…"; don't crash a non-UTF-8 Windows console on it.
+    (sys.stdout as any).reconfigure(encoding="utf-8", errors="replace");
     sys.exit(run(sys.argv[1:]));
 }

@@ -23,6 +23,10 @@ import from guard {
     GuardPending,
     Check
 }
+import from rings {
+    GraphView,
+    NodeMessages
+}
 
 cl {
     import "./styles/global.css";

@@ -1,0 +1,7 @@
+{
+  "_note": "PLACEHOLDER SNAPSHOT - invented example identifiers, not real businesses. Pay targets listed here never form a ring (e.g. a utility paybill many genuine messages mention). Verify before use.",
+  "targets": [
+    {"kind": "TILL", "value": "100100"},
+    {"kind": "TILL", "value": "200200"}
+  ]
+}

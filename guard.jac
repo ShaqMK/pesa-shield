@@ -42,6 +42,11 @@ import from labelled {
     labelled_key,
     verdict_cache
 }
+import from rings {
+    apply_ring_rules,
+    is_ring,
+    known_legit_keys
+}
 
 # Identifier kinds that can be a pay target (GLOSSARY: Pay target).
 glob PAY_KINDS: list[str] = ["PHONE", "TILL", "LINK"];
@@ -107,7 +112,9 @@ obj GraphEvidence {
         other_messages: int,
         other_senders: int,
         medium_or_high_reports: int,
-        is_a_sender: bool;
+        is_a_sender: bool,
+        in_ring: bool = False,  # a pay target several senders asked people to pay
+        known_legit: bool = False;  # on the known-legit list
 }
 
 obj LenderCheck {
@@ -196,7 +203,9 @@ def lookup_graph(token: str) -> GraphEvidence {
         medium_or_high_reports=len(
             [m for m in hits if m.risk in [Risk.MEDIUM.value, Risk.HIGH.value]]
         ),
-        is_a_sender=len([root -->[?:Sender, key == key]]) > 0
+        is_a_sender=len([root -->[?:Sender, key == key]]) > 0,
+        in_ring=len([t for t in [root -->[?:PayTarget, key == key]] if is_ring(t)]) > 0,
+        known_legit=key in known_legit_keys()
     );
 }
 sem lookup_graph = """Look up an identifier token in the shared scam graph: how many other
@@ -329,7 +338,8 @@ def run_guard(
 }
 
 
-"""Store the Verdict on the message and write its edges. Idempotent."""
+"""Store the Verdict on the message, write its edges and apply the ring
+rules. Runs once per message (GuardMessage only acts while `analysing`)."""
 def apply_verdict(msg: Message, result: GuardResult) {
     j = result.judgement;
     msg.risk = j.risk.value;
@@ -367,6 +377,7 @@ def apply_verdict(msg: Message, result: GuardResult) {
             msg +>:MatchesPattern:+> p;
         }
     }
+    apply_ring_rules(msg);
 }
 
 

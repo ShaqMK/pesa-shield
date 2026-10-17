@@ -70,6 +70,13 @@ def hmac_key(canonical: str) -> str {
 }
 
 
+"""HMAC key of a raw identifier of `kind` (PHONE, TILL, LINK, ...), the same
+key redaction gives it inside a message - e.g. for configured lists."""
+def identifier_key(kind: str, raw: str) -> str {
+    return hmac_key(_canonical(kind, raw));
+}
+
+
 def _digits(raw: str) -> str {
     return "".join([c for c in raw if c.isdigit()]);
 }
