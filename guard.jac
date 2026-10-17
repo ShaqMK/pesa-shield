@@ -34,6 +34,7 @@ import from graph {
 import from redaction {
     redact,
     sender_kind,
+    sender_kind_choice,
     template_hash
 }
 import from labelled {
@@ -441,6 +442,7 @@ walker:pub Check {
     has token: str = "",
         text: str = "",
         sender: str = "",  # optional: only its kind reaches Guard
+        from_kind: str = "",  # used only without `sender`: "phone" | "id"
         reports: list[dict[str, any]] = [];
 
     can run with Root entry {
@@ -454,7 +456,7 @@ walker:pub Check {
             template_hash(redacted.llm_text),
             "",
             labelled_key(self.text),
-            sender_kind(self.sender)
+            sender_kind(self.sender) if self.sender.strip() else sender_kind_choice(self.from_kind)
         );
         verdict = result.judgement;
         report {

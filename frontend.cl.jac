@@ -1,65 +1,101 @@
-"""Pesa Shield - Client-side feed UI (T1 tracer).
+"""Pesa Shield - client app shell.
 
-Mobile-first at 360px. Polls the WebFeed walker every 4 seconds while the
-page is visible. State words follow GLOSSARY.md (analysing shown as-is).
+Mobile-first (360px up, a centred column on a laptop) with a bottom tab bar:
+Feed, Check, Graph, Cases. One language toggle (EN/SW) switches verdict
+explanations everywhere and is remembered on this device.
 """
 
-import from "react" {
-    useEffect
+import from "@jac/runtime" {
+    Router,
+    Routes,
+    Route
+}
+import from .components.TabBar {
+    TabBar
+}
+import from .screens.FeedScreen {
+    FeedScreen
+}
+import from .screens.MessageScreen {
+    MessageScreen
+}
+import from .screens.CheckScreen {
+    CheckScreen
+}
+import from .screens.ComingSoon {
+    ComingSoon
 }
 
-import from .components.MessageCard {
-    MessageCard
-}
-
-sv import from endpoints { WebFeed }
+glob LANG_KEY: str = "pesa_lang";
 
 
 def:pub app -> JsxElement {
-    has messages: list[dict[str, any]] = [];
+    has lang: str = localStorage.getItem(LANG_KEY) or "en";
 
-    async def loadFeed -> None;
-
-    # Poll every 4s while mounted.
-    can with entry {
-        loadFeed();
+    def toggleLang(e: MouseEvent) {
+        next = "sw" if lang == "en" else "en";
+        localStorage.setItem(LANG_KEY, next);
+        lang = next;
     }
-    useEffect(lambda {
-        interval = setInterval(lambda { loadFeed(); }, 4000);
-        return lambda { clearInterval(interval); };
-    }, []);
 
-    return <div
-        style={{
-            "maxWidth": "360px",
-            "margin": "0 auto",
-            "padding": "0 0.75rem",
-            "fontFamily": "system-ui, -apple-system, sans-serif",
-            "color": "#1a1a2e",
-            "boxSizing": "content-box"
-        }}
-    >
-        <h1 style={{"fontSize": "1.15rem", "margin": "0.9rem 0 0.15rem"}}>Pesa Shield</h1>
-        <p style={{"color": "#666", "fontSize": "0.85rem", "margin": "0 0 0.9rem"}}>
-            Live feed - updates every ~4s
-        </p>
-        {if len(messages) == 0 {
-            <p style={{"color": "#999", "fontSize": "0.9rem"}}>No messages yet.</p>
-            skip;
-        }}
-        {for (idx, msg) in enumerate(messages) {
-            <MessageCard
-                key={msg["id"] if msg["id"] else str(idx)}
-                display={msg["display"]}
-                senderDisplay={msg["sender_display"]}
-                status={msg["status"]}
-                risk={msg["risk"]}
-                scamType={msg["scam_type"]}
-                reasons={msg["reasons"]}
-                action={msg["action"]}
-                explanation={msg["explanation_en"]}
-                cached={msg["cached"]}
-            />
-        }}
-    </div>;
+    return <Router>
+        <div
+            style={{
+                "maxWidth": "480px",
+                "margin": "0 auto",
+                "padding": "0 1rem 6rem",
+                "boxSizing": "border-box",
+                "overflowX": "hidden",
+                "fontFamily": "system-ui, -apple-system, sans-serif",
+                "color": "#1a1a2e"
+            }}
+        >
+            <header
+                style={{
+                    "display": "flex",
+                    "justifyContent": "space-between",
+                    "alignItems": "center",
+                    "minHeight": "56px"
+                }}
+            >
+                <h1 style={{"fontSize": "1.15rem", "margin": "0"}}>Pesa Shield</h1>
+                <button
+                    type="button"
+                    onClick={toggleLang}
+                    aria-label={"Lugha: Kiswahili. Switch explanations to English" if lang == "sw" else "Language: English. Badili maelezo kuwa Kiswahili"}
+                    style={{
+                        "minHeight": "44px",
+                        "minWidth": "88px",
+                        "border": "1px solid #bbb",
+                        "borderRadius": "22px",
+                        "backgroundColor": "#fff",
+                        "fontSize": "0.9rem"
+                    }}
+                >
+                    {"English" if lang == "en" else "Kiswahili"}
+                </button>
+            </header>
+            <main>
+                <Routes>
+                    <Route path="/" element={<FeedScreen/>}/>
+                    <Route path="/message/:id" element={<MessageScreen lang={lang}/>}/>
+                    <Route path="/check" element={<CheckScreen lang={lang}/>}/>
+                    <Route
+                        path="/graph"
+                        element={<ComingSoon title="Scam rings" note="The ring graph view arrives in the next slice."/>}
+                    />
+                    <Route
+                        path="/cases"
+                        element={<ComingSoon title="Cases" note="Lost money? Recovery cases arrive in a later slice."/>}
+                    />
+                </Routes>
+            </main>
+            <footer style={{"marginTop": "1.5rem", "fontSize": "0.75rem", "color": "#666", "lineHeight": "1.4"}}>
+                Pesa Shield is a decision aid, not legal advice. Confirm reporting channels
+                with your telco or the police before you act. Nothing is ever sent or
+                reported for you.
+            </footer>
+        </div>
+        <TabBar/>
+    </Router>;
 }

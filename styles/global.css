@@ -1,0 +1,9 @@
+/* Pesa Shield is designed light-only for now: pin the page so a dark OS
+   theme can't put dark text on a dark page. No horizontal scroll. */
+html, body {
+  margin: 0;
+  background: #ffffff;
+  color: #1a1a2e;
+  color-scheme: light;
+  overflow-x: hidden;
+}

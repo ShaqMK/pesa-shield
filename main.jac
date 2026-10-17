@@ -14,6 +14,7 @@ import from graph {
 import from endpoints {
     IngestMessage,
     WebFeed,
+    GetMessage,
     Seed,
     Reset
 }
@@ -24,6 +25,7 @@ import from guard {
 }
 
 cl {
+    import "./styles/global.css";
     import from .frontend {
         app as ClientApp
     }

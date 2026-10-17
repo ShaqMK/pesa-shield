@@ -173,6 +173,27 @@ walker:pub WebFeed {
 }
 
 
+"""Read-only: one message and its Verdict, for the message detail screen."""
+walker:pub GetMessage {
+    has message_id: str = "",
+        reports: list[dict[str, any]] = [];
+
+    can fetch with Root entry {
+        target: any = None;
+        try {
+            target = jobj(self.message_id);
+        } except Exception {
+            target = None;
+        }
+        if not isinstance(target, Message) {
+            report {"status": "not_found"};
+            disengage;
+        }
+        report message_view(target);
+    }
+}
+
+
 """Admin: seed the taxonomy Patterns. Idempotent; requires the admin secret."""
 walker:pub Seed {
     has secret: str = "",

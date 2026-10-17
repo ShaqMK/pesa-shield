@@ -1,70 +1,56 @@
-"""A single feed message card: the masked message and, once Guard is done,
-its Verdict. Risk is always shown as a word plus colour, never colour alone.
-"""
+"""A feed card: sender, risk (word + colour), the masked message and, once
+analysed, the first reason. Tapping it opens the message detail."""
 
-glob RISK_STYLE: dict[str, dict[str, str]] = {
-    "high": {"label": "High risk", "bg": "#fde2e1", "fg": "#a61b1b"},
-    "medium": {"label": "Medium risk", "bg": "#fff1d6", "fg": "#7a4f00"},
-    "low": {"label": "Low risk", "bg": "#e3f5e8", "fg": "#1e6b3a"}
-};
+import from "@jac/runtime" {
+    Link
+}
+import from .RiskBadge {
+    RiskBadge
+}
 
 
-def:pub MessageCard(
-    display: str,
-    senderDisplay: str,
-    status: str,
-    risk: str = "",
-    scamType: str = "",
-    reasons: list[str] = [],
-    action: str = "",
-    explanation: str = "",
-    cached: bool = False
-) -> JsxElement {
-    style = RISK_STYLE[risk] if status == "analysed" and risk in RISK_STYLE else {
-        "label": "check failed" if status == "failed" else status,
-        "bg": "#e0e0e0",
-        "fg": "#555"
-    };
-    return <div
+def:pub MessageCard(message: dict) -> JsxElement {
+    reasons = (message["reasons"] or []) as list[str];
+    return <Link
+        to={"/message/" + message["id"]}
         style={{
+            "display": "block",
+            "minHeight": "44px",
             "padding": "0.7rem 0.9rem",
             "marginBottom": "0.5rem",
             "backgroundColor": "#f8f9fa",
-            "border": "1px solid #e9ecef",
+            "border": "1px solid #e3e6ea",
             "borderRadius": "10px",
-            "minHeight": "44px"
+            "color": "inherit",
+            "textDecoration": "none"
         }}
     >
         <div style={{"display": "flex", "justifyContent": "space-between", "gap": "0.5rem"}}>
-            <strong style={{"fontSize": "0.82rem"}}>{senderDisplay}</strong>
-            <span
-                style={{
-                    "fontSize": "0.72rem",
-                    "fontWeight": "600",
-                    "padding": "0.15rem 0.5rem",
-                    "borderRadius": "999px",
-                    "backgroundColor": style["bg"],
-                    "color": style["fg"]
+            <strong style={{"fontSize": "0.82rem"}}>{message["sender_display"]}</strong>
+            <span>
+                <RiskBadge risk={message["risk"]} status={message["status"]}/>
+                {if message["cached"] {
+                    <span
+                        title="Replayed from the labelled demo set, not a live LLM call"
+                        style={{
+                            "marginLeft": "0.3rem",
+                            "fontSize": "0.7rem",
+                            "padding": "0.05rem 0.35rem",
+                            "borderRadius": "6px",
+                            "border": "1px solid #999",
+                            "color": "#444"
+                        }}
+                    >
+                        cached
+                    </span>
                 }}
-            >
-                {style["label"]}
             </span>
         </div>
-        <p style={{"margin": "0.35rem 0 0", "color": "#333", "fontSize": "0.88rem"}}>{display}</p>
-        {if status == "analysed" {
-            <div style={{"marginTop": "0.45rem", "fontSize": "0.8rem", "color": "#333"}}>
-                <div style={{"color": "#666"}}>
-                    {" ".join(scamType.split("_")) if scamType != "none" else "no scam pattern"}
-                    {" · cached" if cached else ""}
-                </div>
-                <ul style={{"margin": "0.3rem 0", "paddingLeft": "1.1rem"}}>
-                    {for (i, r) in enumerate(reasons) {
-                        <li key={str(i)}>{r}</li>
-                    }}
-                </ul>
-                <div><strong>Do this: </strong>{action}</div>
-                <p style={{"margin": "0.35rem 0 0", "color": "#555"}}>{explanation}</p>
-            </div>
+        <p style={{"margin": "0.35rem 0 0", "color": "#333", "fontSize": "0.88rem", "overflowWrap": "anywhere"}}>
+            {message["display"]}
+        </p>
+        {if message["status"] == "analysed" and len(reasons) > 0 {
+            <p style={{"margin": "0.35rem 0 0", "color": "#555", "fontSize": "0.8rem"}}>{reasons[0]}</p>
         }}
-    </div>;
+    </Link>;
 }

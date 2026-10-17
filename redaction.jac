@@ -127,6 +127,15 @@ def _is_phone_sender(stripped: str) -> bool {
 }
 
 
+"""Sender kind from a client's choice ("phone", "id", anything else = unknown)."""
+def sender_kind_choice(choice: str) -> str {
+    if choice == "phone" {
+        return SENDER_PHONE;
+    }
+    return SENDER_ID if choice == "id" else SENDER_UNKNOWN;
+}
+
+
 """What kind of sender this is, without revealing who: for the LLM."""
 def sender_kind(raw: str) -> str {
     stripped = raw.strip();
