@@ -6,6 +6,8 @@
 
 ---
 
+> **TL;DR** — Forward an SMS and Pesa Shield’s Jac agent tells you, in plain English and natural Swahili, whether it is a scam *before* you pay — choosing its own checks against a shared scam graph. Numbers that ask people to pay the same till are linked into **rings**. If money is lost, it drafts a report that waits for **your** approval: nothing is ever sent for you. 94.8% Jac, live on Jac Hammer.
+
 ## Inspiration
 
 In Kenya, almost everyone has received one: *“Nimekutumia pesa kimakosa, tafadhali nirudishie”* — “I sent you money by mistake, please send it back.” Or a loan “approved” that only needs a small fee first. Mobile money carries most of the country’s everyday payments, and scam SMS ride on that trust. People have no quick, trustworthy way to check a message **before** they pay — and when money is lost, victims rarely know what to report, or to whom.
@@ -14,21 +16,32 @@ We wanted a guard that sits between the SMS and the payment, explains itself in 
 
 ## What it does
 
-**Pesa Shield** is an AI agent that checks every incoming SMS for mobile-money and digital-loan scams *before you act*:
-
 - **Feed** — SMS forwarded from a phone appear live. Each gets a verdict: risk in words *and* colour (low / medium / high), at most three reasons, one clear action, and an explanation in **English and natural Swahili** (never a word-for-word translation, never Sheng).
 - **Check** — paste any suspicious message and get a verdict in seconds.
-- **Scam rings** — when three or more different numbers ask people to pay the **same till, paybill or number**, they form a ring. Their earlier messages are escalated retroactively with evidence: *“also reported from 2 other numbers.”*
-- **Recovery** — tap **“I lost money”** and Pesa Shield builds a timeline, extracts the exact facts (amounts, masked numbers, tills, transaction codes) and drafts a report in English and Swahili. It **stops at “awaiting approval”**: nothing is ever sent or reported automatically — you approve, copy it and send it yourself.
+- **Scam rings** — when three or more different numbers ask people to pay the **same till, paybill or number**, they form a ring, and their earlier messages are escalated with evidence: *“also reported from 2 other numbers.”*
+- **Recovery** — tap **“I lost money”** and Pesa Shield builds a timeline, extracts the exact facts (amounts, masked numbers, tills, transaction codes) and drafts a report in English and Swahili. It **stops at “awaiting approval”**: you edit, approve, copy and send it yourself.
 - **CLI** — `check`, `simulate`, `graph`, `case start / show / edit / approve` call the same deployed backend as the web app.
 
-## How we used Jac / Jaseci
+## How we built it — Jac / Jaseci
 
-Everything is written in **Jac** — 94.8% of non-documentation lines, with no Python, JavaScript or TypeScript source — and it runs on the native `jac` 0.37.25 runtime, deployed on **Jac Hammer**.
+Everything is written in **Jac** — 94.8% of non-documentation lines, with no Python, JavaScript or TypeScript source — on the native `jac` 0.37.25 runtime, deployed on **Jac Hammer**.
+
+```
+ SMS forwarder ──POST──▶ IngestMessage (walker:pub) ──redact──▶ graph: Sender ─▶ Message
+                                │ flow (background)
+                                ▼
+                         GuardMessage ──▶ judge(...) by llm  ──tools──▶ extract_entities
+                                │            (typed Verdict)            lookup_graph
+                                ▼                                       check_lender
+              Mentions ─▶ PayTarget ◀─ LinkedTo ─ Sender                similar_messages
+                         (≥3 senders = ring → escalate)
+  Web app (Jac client) ─┐
+  CLI (HTTP client)  ───┴──▶ the same walker endpoints: WebFeed, Check, GraphView, StartCase …
+```
 
 - **Object-spatial programming.** Senders, messages, pay targets, scam patterns and recovery cases are **nodes** on one shared graph, joined by typed **edges** (`SentBy`, `Mentions`, `MatchesPattern`, `LinkedTo`, `PartOfCase`). Ring detection is a graph question: a `PayTarget` with \\( \geq 3 \\) distinct senders linked by medium/high-risk messages is a ring.
 - **Walkers are the API.** Every `walker:pub` is automatically a REST endpoint — the SMS webhook, feed, Guard, Check, the ring view and the whole case flow — so the web app and the CLI share one backend.
-- **byLLM, typed and with tools.** Guard is `def judge(message, sender_kind) -> Judgement by llm(tools=[...])`. The model returns a **typed** object (enums for risk and scam type) described entirely with `sem` strings, and it **decides per message which tools to call** — `extract_entities`, `lookup_graph`, `check_lender`, `similar_messages`. On the live deployment, a loan message naming a lender made it call `check_lender`; a family message needed no tools. Recovery’s report narrative is a second typed `by llm` call.
+- **byLLM, typed and with tools.** Guard is `def judge(message, sender_kind) -> Judgement by llm(tools=[...])`. The model returns a **typed** object (enums for risk and scam type), described entirely with `sem` strings, and **decides per message which tools to call**. On the live deployment, a loan message naming a lender made it call `check_lender`; a family message needed no tools. Recovery’s report narrative is a second typed `by llm` call.
 - **`flow`** answers the SMS webhook instantly (“analysing”) and runs Guard in the background.
 - **Jac client** renders the mobile-first UI — 360px, 44px tap targets, a bottom tab bar and a hand-written SVG ring graph — from Jac components.
 - **`jac check` and `jac test`.** All 26 modules type-check, and the integration checks run through the walkers: wrong credentials are rejected at every tier, a three-sender ring forms and escalates, and Recovery stops at awaiting approval until approved.
@@ -55,6 +68,14 @@ Every scam was caught both times; the misses were genuine bank and M-Pesa notice
 - **Not crying wolf.** Real confirmations look a lot like fake ones. Telling Guard the *kind* of sender (phone number vs registered sender ID — never the value) and that “no reports yet” is not evidence made the biggest difference.
 - **Safe public defaults.** The runtime’s built-in admin account, Swagger page and graph visualizer had to be switched off for a public deploy, and we found and fixed API responses echoing request secrets.
 
+## Accomplishments that we’re proud of
+
+- An agent that **chooses its own tools** and returns a **typed** verdict — not a fixed pipeline.
+- Explanations in **natural Swahili** alongside English, with risk never shown by colour alone.
+- **Human-in-the-loop by design**: Recovery cannot send anything, and that gate is one of our integration checks.
+- **Privacy that holds end to end**: the model never sees a phone number — not even a masked one.
+- An **honest eval** that shows the blind number next to the tuned one.
+
 ## What we learned
 
 Jac’s graph-first model made the domain feel natural: rings, evidence and cases are just nodes and edges, and walkers turn them into an API for free. Typed `by llm` outputs turned an LLM into a component we could test, cache and reason about. And the honest number matters more than the big one.
@@ -62,6 +83,23 @@ Jac’s graph-first model made the domain feel natural: rings, evidence and case
 ## What’s next
 
 On-device SMS filtering, verified lender and reporting-channel data with telcos and regulators, and a held-out evaluation set built from real, consented reports.
+
+## Demo (2 minutes)
+
+1. A loan-fee SMS arrives in the **Feed** → *analysing* → **High risk** with reasons and one action.
+2. Switch to **Kiswahili**: the same verdict, explained naturally.
+3. `pesashield simulate --limit 3` → the **Graph** tab shows a ring; earlier messages escalate with evidence.
+4. **I lost money** → timeline, exact facts, EN/SW draft, stopped at *awaiting approval* → **Approve** → **Copy report**.
+5. `pesashield check "…" --lang sw` — the same backend from the CLI.
+
+## Submission checklist
+
+| Requirement | Where |
+|---|---|
+| GitHub repo, ≥80% Jac | [github.com/ShaqMK/pesa-shield](https://github.com/ShaqMK/pesa-shield) — 94.8% Jac (measured in `docs/jac-features.md`) |
+| Demo video | Embedded at the top of this page |
+| Pitch deck | Attached to the submission |
+| How we used Jac / Jaseci | *How we built it* above, and `docs/jac-features.md` in the repo |
 
 ---
 
