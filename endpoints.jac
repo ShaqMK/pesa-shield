@@ -26,6 +26,7 @@ import from access {
     require_text
 }
 import from graph {
+    Case,
     Message,
     PayTarget,
     Sender,
@@ -207,7 +208,7 @@ walker:pub Seed {
 }
 
 
-"""Admin: wipe ingested data (Senders, Messages, PayTargets) and rate-limit
+"""Admin: wipe ingested data (Senders, Messages, PayTargets, Cases) and rate-limit
 state, then re-seed the Patterns. Idempotent; requires the admin secret.
 """
 walker:pub Reset {
@@ -226,6 +227,9 @@ walker:pub Reset {
         }
         for t in [root -->[?:PayTarget]] {
             del t;
+        }
+        for c in [root -->[?:Case]] {
+            del c;
         }
         rate_hits.clear();
         seed_patterns();

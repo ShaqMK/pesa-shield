@@ -25,8 +25,11 @@ import from .screens.CheckScreen {
 import from .screens.GraphScreen {
     GraphScreen
 }
-import from .screens.ComingSoon {
-    ComingSoon
+import from .screens.CasesScreen {
+    CasesScreen
+}
+import from .screens.CaseScreen {
+    CaseScreen
 }
 
 glob LANG_KEY: str = "pesa_lang";
@@ -84,10 +87,8 @@ def:pub app -> JsxElement {
                     <Route path="/message/:id" element={<MessageScreen lang={lang}/>}/>
                     <Route path="/check" element={<CheckScreen lang={lang}/>}/>
                     <Route path="/graph" element={<GraphScreen/>}/>
-                    <Route
-                        path="/cases"
-                        element={<ComingSoon title="Cases" note="Lost money? Recovery cases arrive in a later slice."/>}
-                    />
+                    <Route path="/cases" element={<CasesScreen/>}/>
+                    <Route path="/cases/:id" element={<CaseScreen lang={lang}/>}/>
                 </Routes>
             </main>
             <footer style={{"marginTop": "1.5rem", "fontSize": "0.75rem", "color": "#666", "lineHeight": "1.4"}}>

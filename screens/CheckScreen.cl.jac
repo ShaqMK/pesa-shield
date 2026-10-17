@@ -13,9 +13,12 @@ import from ..components.VerdictPanel {
 import from ..services.api {
     callWalker
 }
+import from ..services.token {
+    getToken,
+    saveToken
+}
 
-glob TOKEN_KEY: str = "pesa_client_token",
-     SENDER_CHOICES: list[dict[str, str]] = [
+glob SENDER_CHOICES: list[dict[str, str]] = [
          {"value": "phone", "label": "A phone number"},
          {"value": "id", "label": "A name like MPESA"},
          {"value": "", "label": "Not sure"}
@@ -25,7 +28,7 @@ glob TOKEN_KEY: str = "pesa_client_token",
 def:pub CheckScreen(lang: str) -> JsxElement {
     has text: str = "",
         fromKind: str = "",
-        token: str = localStorage.getItem(TOKEN_KEY) or "",
+        token: str = getToken(),
         result: dict | None = None,
         error: str = "",
         busy: bool = False;
@@ -39,7 +42,7 @@ def:pub CheckScreen(lang: str) -> JsxElement {
             error = "Enter your access code first.";
             return;
         }
-        localStorage.setItem(TOKEN_KEY, token.strip());
+        saveToken(token);
         busy = True;
         error = "";
         result = None;

@@ -3,6 +3,8 @@
     jac run cli.jac check "<message>" [--lang sw] [--base-url URL] [--token T]
     jac run cli.jac simulate [--delay SEC] [--limit N] [--secret S] [--base-url URL]
     jac run cli.jac graph [--base-url URL]
+    jac run cli.jac case start <message_id> | show <case_id> | approve <case_id> | discard <case_id> [--lang sw]
+    jac run cli.jac case edit <case_id> "<new report text>" [--lang sw]
 
 Base URL: --base-url, else PESA_BASE_URL, else http://localhost:3000.
 Client token: --token, else PESA_CLIENT_TOKEN. Webhook secret (simulate):
@@ -27,7 +29,9 @@ import from urllib.error {
 glob USAGE: str = """usage:
   jac run cli.jac check "<message>" [--lang en|sw] [--base-url URL] [--token T]
   jac run cli.jac simulate [--delay SEC] [--limit N] [--secret S] [--base-url URL]
-  jac run cli.jac graph [--base-url URL]""",
+  jac run cli.jac graph [--base-url URL]
+  jac run cli.jac case start <message_id> | show <case_id> | approve <case_id> | discard <case_id> [--lang sw]
+  jac run cli.jac case edit <case_id> "<new report text>" [--lang sw]""",
      DATASET_PATH: str = os.path.join(
          os.path.dirname(os.path.abspath(__file__)), "data", "synthetic_messages.json"
      ),
@@ -187,6 +191,69 @@ def graph(args: CliArgs) -> int {
 }
 
 
+def print_case(c: dict, lang: str) {
+    print(f"Case {c['id']}  status: {c['status']}");
+    print("");
+    print("What happened:");
+    for t in c["timeline"] as list[dict] {
+        print(f"  {t['at']}  {t['summary']}");
+    }
+    print("Facts (masked, as in the messages):");
+    for f in c["facts"] as list[dict] {
+        print(f"  {f['kind']}: {f['value']}");
+    }
+    print("Send to (you send it): " + "; ".join(c["recipients"] as list[str]));
+    print("");
+    if c["status"] == "approved" {
+        print("APPROVED REPORT - copy and send it yourself:");
+        print(c["final_text_sw"] if lang == "sw" else c["final_text_en"]);
+    } elif c["status"] == "awaiting_approval" {
+        print("DRAFT - awaiting your approval (nothing has been sent):");
+        print(c["body_sw"] if lang == "sw" else c["body_en"]);
+        print("");
+        print(f"Approve with: jac run cli.jac case approve {c['id']}");
+    } else {
+        print("Discarded.");
+    }
+}
+
+
+"""Recovery cases: start from a message, show, approve or discard."""
+def case_command(args: CliArgs) -> int {
+    actions = {
+        "start": ["StartCase", "message_id"],
+        "show": ["GetCase", "case_id"],
+        "approve": ["ApproveCase", "case_id"],
+        "discard": ["DiscardCase", "case_id"],
+        "edit": ["EditCase", "case_id"]
+    };
+    wanted = 3 if args.positional[:1] == ["edit"] else 2;
+    if len(args.positional) != wanted or args.positional[0] not in actions {
+        print(USAGE);
+        return 2;
+    }
+    (walker_name, id_field) = (actions[args.positional[0]][0], actions[args.positional[0]][1]);
+    body: dict = {id_field: args.positional[1]};
+    if walker_name == "EditCase" {
+        body["body_sw" if args.lang == "sw" else "body_en"] = args.positional[2];
+    }
+    if walker_name != "GetCase" {
+        body["token"] = args.token;
+    }
+    try {
+        reports = call_walker(args.base_url, walker_name, body);
+    } except URLError as e {
+        print(f"cannot reach {args.base_url}: {e.reason}");
+        return 2;
+    } except RuntimeError as e {
+        print(f"rejected: {e}");
+        return 1;
+    }
+    print_case(reports[0] as dict, args.lang);
+    return 0;
+}
+
+
 def run(argv: list[str]) -> int {
     args = parse_args(argv);
     if args.command == "simulate" {
@@ -194,6 +261,9 @@ def run(argv: list[str]) -> int {
     }
     if args.command == "graph" {
         return graph(args);
+    }
+    if args.command == "case" {
+        return case_command(args);
     }
     if args.command == "check" and args.positional {
         try {

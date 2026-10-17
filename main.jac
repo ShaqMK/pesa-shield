@@ -27,6 +27,14 @@ import from rings {
     GraphView,
     NodeMessages
 }
+import from recovery {
+    StartCase,
+    GetCase,
+    ListCases,
+    EditCase,
+    ApproveCase,
+    DiscardCase
+}
 
 cl {
     import "./styles/global.css";

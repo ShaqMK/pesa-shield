@@ -15,6 +15,9 @@ import from ..components.RiskBadge {
 import from ..components.VerdictPanel {
     VerdictPanel
 }
+import from ..components.LostMoneyButton {
+    LostMoneyButton
+}
 import from ..services.api {
     callWalker
 }
@@ -111,5 +114,6 @@ def:pub MessageScreen(lang: str) -> JsxElement {
         } else {
             <VerdictPanel verdict={shown} lang={lang}/>
         }}
+        <LostMoneyButton messageId={str(messageId)}/>
     </section>;
 }

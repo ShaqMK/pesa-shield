@@ -6,6 +6,7 @@ Message ─Mentions─> PayTarget written by Guard after the verdict (pay target
 Message ─MatchesPattern─> Pattern
 Sender ─LinkedTo─> PayTarget  a medium/high message from that sender asked
                               people to pay that target (rings.jac)
+Message ─PartOfCase─> Case    the messages behind a Recovery case (recovery.jac)
 """
 
 import from taxonomy {
@@ -63,6 +64,27 @@ edge SentBy: Message --> Sender {}
 edge Mentions: Message --> PayTarget {}
 
 edge MatchesPattern: Message --> Pattern {}
+
+"""Recovery's working object for one reported loss (GLOSSARY: Case).
+Status: awaiting_approval (the draft) -> approved | discarded. Nothing is
+ever sent."""
+node Case {
+    has created_at: str,
+        status: str,
+        scam_type: str,
+        timeline: list[dict[str, str]],  # at, message_id, summary, risk, scam_type
+        facts: list[dict[str, str]],  # kind, value (masked, exactly as present)
+        recipients: list[str],  # labels from config/report_channels.json
+        body_en: str,
+        body_sw: str,
+        drafted_by: str,  # "llm" or "template"
+        edited: bool = False,
+        final_text_en: str = "",  # only set on approve
+        final_text_sw: str = "",
+        decided_at: str = "";
+}
+
+edge PartOfCase: Message --> Case {}
 
 edge LinkedTo: Sender --> PayTarget {
     has count: int = 0;  # medium/high messages from the sender to the target

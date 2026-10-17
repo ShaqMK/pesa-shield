@@ -13,9 +13,11 @@ glob TABS: list[dict[str, str]] = [
 ];
 
 
-"""A message detail page belongs to the Feed tab."""
+"""A message detail page belongs to the Feed tab, a case page to Cases."""
 def isActive(path: str, target: str) -> bool {
-    return path == target or (target == "/" and path.startswith("/message"));
+    return path == target
+    or (target == "/" and path.startswith("/message"))
+    or (target == "/cases" and path.startswith("/cases/"));
 }
 
 

@@ -1,0 +1,8 @@
+{
+  "_note": "PLACEHOLDER LABELS - not real contacts or short codes. Confirm the right channel with your mobile network, bank or the police before sending. Pesa Shield never sends anything.",
+  "channels": [
+    {"id": "network_fraud", "label": "Your mobile network's fraud reporting line (placeholder - verify)"},
+    {"id": "police", "label": "Nearest police station / cybercrime desk (placeholder - verify)"},
+    {"id": "bank_or_lender", "label": "Your bank's or lender's official complaints channel (placeholder - verify)"}
+  ]
+}

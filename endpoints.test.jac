@@ -1,12 +1,15 @@
 """Integration checks (spawn walkers on root).
 
 Per the spec's testing decisions, tests go through walkers and assert on
-reports; no internals are tested directly. The only stand-in is the LLM
-boundary: Guard's `judge` is replaced by a fixed answer so no model is called.
+reports; no internals are tested directly. The only stand-ins are at the
+LLM boundary: Guard's `judge` and Recovery's `draft_narrative` are replaced
+by fixed answers (and restored) so no model is called.
 """
 
 import os;
+import json;
 import guard as G;
+import recovery as R;
 import from guard {
     GuardMessage,
     Judgement,
@@ -16,6 +19,13 @@ import from guard {
 import from rings {
     GraphView
 }
+import from recovery {
+    ApproveCase,
+    EditCase,
+    GetCase,
+    ReportDraft,
+    StartCase
+}
 
 
 def _use_test_secrets {
@@ -23,6 +33,7 @@ def _use_test_secrets {
     os.environ["PESA_ADMIN_SECRET"] = "test-admin-secret";
     os.environ["PESA_HMAC_SECRET"] = "test-hmac-secret";
     os.environ["PESA_SELF_URL"] = "off";
+    os.environ["PESA_CLIENT_TOKEN"] = "test-client-token";
 }
 
 
@@ -126,4 +137,66 @@ def _check_ring_formation {
     }
     other = (root spawn GetMessage(message_id=lookalike)).reports[0];
     assert other["risk"] == "medium" and not other["ring_id"], other;
+}
+
+
+def _fixed_draft(timeline: list[str], scam_type: str) -> ReportDraft {
+    return ReportDraft(
+        narrative_en="I was asked to pay a fee before a loan and lost the money.",
+        narrative_sw="Niliombwa kulipa ada kabla ya mkopo na nikapoteza pesa."
+    );
+}
+
+
+"""Integration check 3: Recovery drafts a case and stops at awaiting_approval;
+reading or editing never finalizes it; only approve (with the client token)
+does, and only then is there final text to copy."""
+test "recovery stops at awaiting approval and only finalizes on approve" {
+    _use_test_secrets();
+    (real_judge, real_draft) = (G.judge, R.draft_narrative);
+    (G.judge, R.draft_narrative) = (_medium_fee_judge, _fixed_draft);
+    try {
+        _check_recovery_gate();
+    } finally {
+        (G.judge, R.draft_narrative) = (real_judge, real_draft);
+    }
+}
+
+
+def _check_recovery_gate {
+    mid = _ingest_and_guard(
+        "+254700330001",
+        "QWE7RT5Y1U Loan ready! Pay Ksh 650 fee to Till 770055 now to receive Ksh 20,000."
+    );
+    token = "test-client-token";
+    opened = (root spawn StartCase(token=token, message_id=mid)).reports[0];
+    assert opened["status"] == "awaiting_approval", opened;
+    assert opened["final_text_en"] == "" and opened["final_text_sw"] == "", opened;
+    facts = [f["kind"] + " " + f["value"] for f in opened["facts"]];
+    assert "amount Ksh 650" in facts and "transaction_code QWE7RT5Y1U" in facts, facts;
+    assert [f for f in opened["facts"] if f["kind"] == "till"], facts;
+    assert len(opened["timeline"]) >= 1, opened;
+    with open(os.path.join("config", "report_channels.json"), encoding="utf-8") as fh {
+        labels = [c["label"] for c in json.load(fh)["channels"]];
+    }
+    assert opened["recipients"] and all([r in labels for r in opened["recipients"]]), opened;
+
+    cid = opened["id"];
+    assert (root spawn GetCase(case_id=cid)).reports[0]["status"] == "awaiting_approval";
+    edited = (root spawn EditCase(token=token, case_id=cid, body_en="My edited report.")).reports[0];
+    assert edited["status"] == "awaiting_approval" and edited["final_text_en"] == "", edited;
+
+    err = "";
+    try {
+        root spawn ApproveCase(token="nope", case_id=cid);
+    } except RuntimeError as e {
+        err = str(e);
+    }
+    assert "forbidden" in err, err;
+    assert (root spawn GetCase(case_id=cid)).reports[0]["status"] == "awaiting_approval";
+
+    approved = (root spawn ApproveCase(token=token, case_id=cid)).reports[0];
+    assert approved["status"] == "approved", approved;
+    assert "My edited report." in approved["final_text_en"], approved;
+    assert approved["final_text_sw"], approved;
 }

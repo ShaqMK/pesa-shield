@@ -11,7 +11,7 @@ Canonical domain vocabulary. Use these terms exactly in issues, verdicts, tests 
 - **Ring** — a cluster of at least three senders linked by a shared pay target (shared templates never create ring links). A ring's count includes only medium/high messages; targets on the known-legit list are excluded. When a ring forms, member senders' earlier medium/high messages are retroactively escalated.
 - **Pay target** — a till, paybill, phone number or link that a message asks you to pay.
 - **Pattern** — a named scam archetype from the taxonomy (e.g. fee-before-loan, wrong-number reversal). Messages match Patterns.
-- **Case** — Recovery's working object: the timeline, facts and drafted report for one reported loss, in draft → awaiting approval → approved (or discarded).
+- **Case** — Recovery's working object: the timeline, facts and drafted report for one reported loss. The draft is created awaiting approval and stays there through edits until it is approved (or discarded).
 - **Forwarder** — an Android app that forwards each incoming SMS to Pesa Shield's ingestion webhook.
 - **Redaction** — the step applied before storage and LLM use. Each identifier found in a message becomes three things: an HMAC key (see **Sender key**) for graph matching and dedupe, a masked display string (e.g. last 3 digits) for UI and storage, and a neutral token (e.g. `[PHONE_1]`) that is all the LLM ever sees of it (plus the **Sender kind**). Raw identifiers are never stored.
 - **Sender kind** — whether a message came from a phone number or a registered sender ID (e.g. a bank or telco name). Never the value itself; Guard sees it next to the neutral-token text because real confirmations come from sender IDs, though sender IDs can be spoofed.
