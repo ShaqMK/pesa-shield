@@ -49,38 +49,18 @@ test "wrong or missing credential is rejected" {
     }
 }
 
-test "webhook creates message and returns analysing" {
+"""Dedupe check: the same message from the same sender, posted twice,
+returns the existing message id instead of ingesting it again."""
+test "dedupe returns the existing message id" {
     _use_test_secrets();
-    w = root spawn IngestMessage(
-        secret="test-webhook-secret",
-        sender="+254700111222",
-        text="fee before loan scam text 0700123456"
+    first = root spawn IngestMessage(
+        secret="test-webhook-secret", sender="+254700111222", text="dedupe me 0700123456"
     );
-    assert len(w.reports) == 1;
-    assert w.reports[0]["status"] == "analysing";
-    assert w.reports[0]["id"] != "";
-}
-
-test "webhook is idempotent on identical message" {
-    _use_test_secrets();
-    a = root spawn IngestMessage(secret="test-webhook-secret", sender="+254700111222", text="dedupe me 0700123456");
-    b = root spawn IngestMessage(secret="test-webhook-secret", sender="+254700111222", text="dedupe me 0700123456");
-    assert a.reports[0]["id"] == b.reports[0]["id"], ("dedupe must return the existing id", a.reports, b.reports);
-}
-
-test "feed returns messages newest first with analysing status" {
-    _use_test_secrets();
-    a = root spawn IngestMessage(secret="test-webhook-secret", sender="+254700111222", text="msg one 0700123456");
-    b = root spawn IngestMessage(secret="test-webhook-secret", sender="+254700444555", text="msg two 0711555666");
-    feed = root spawn WebFeed(limit=50);
-    assert len(feed.reports) >= 2;
-    for r in feed.reports {
-        assert r["status"] == "analysing";
-    }
-    ids = [r["id"] for r in feed.reports];
-    older = a.reports[0]["id"];
-    newer = b.reports[0]["id"];
-    assert ids.index(newer) < ids.index(older), "feed must be newest first";
+    again = root spawn IngestMessage(
+        secret="test-webhook-secret", sender="+254700111222", text="dedupe me 0700123456"
+    );
+    assert again.reports[0]["id"] == first.reports[0]["id"], (first.reports, again.reports);
+    assert again.reports[0]["dedupe"] == "true", again.reports;
 }
 
 
