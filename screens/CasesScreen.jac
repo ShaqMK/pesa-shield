@@ -18,7 +18,7 @@ glob STATUS_WORDS: dict[str, str] = {
 
 
 def:pub CasesScreen() -> JsxElement {
-    has cases: list[dict] = [],
+    has cases: list[dict[str, any]] = [],
         loaded: bool = False,
         error: str = "";
 
@@ -26,7 +26,7 @@ def:pub CasesScreen() -> JsxElement {
         reply = await callWalker("ListCases", {});
         error = str(reply["error"]);
         if not error {
-            cases = reply["reports"] as list[dict];
+            cases = reply["reports"] as list[dict[str, any]];
             loaded = True;
         }
     }

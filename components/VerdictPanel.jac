@@ -2,7 +2,7 @@
 action, the explanation in the chosen language, and masked entities.
 
 Renders with lookups and JSX loops only - Python string helpers on loosely
-typed (dict) values do not survive the compile to JavaScript.
+typed (dict[str, any]) values do not survive the compile to JavaScript.
 """
 
 glob SCAM_LABELS: dict[str, str] = {
@@ -18,10 +18,10 @@ glob SCAM_LABELS: dict[str, str] = {
 };
 
 
-def:pub VerdictPanel(verdict: dict, lang: str) -> JsxElement {
+def:pub VerdictPanel(verdict: dict[str, any], lang: str) -> JsxElement {
     scam = verdict["scam_type"] or "none";
     reasons = ((verdict["reasons"] or []) as list[str])[:3];
-    entities = (verdict["entities"] or []) as list[dict];
+    entities = (verdict["entities"] or []) as list[dict[str, any]];
     tools = (verdict["tools_used"] or []) as list[str];
     explanation = verdict["explanation_sw"] if lang == "sw" else verdict["explanation_en"];
     return <div style={{"fontSize": "0.92rem", "color": "#222"}}>

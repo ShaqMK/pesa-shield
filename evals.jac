@@ -1,6 +1,6 @@
 """Labelled synthetic set: scoring, the live eval, and the regression check.
 
-    jac run evals.jac live      # ONE pass against the real LLM (SPEC: Live eval)
+    jac run --no-serve --no-takeover evals.jac live      # ONE pass against the real LLM (SPEC: Live eval)
 
 The live eval ingests every message of data/synthetic_messages.json into a
 fresh local graph (so lookup_graph sees ring evidence build up), runs Guard
@@ -35,9 +35,9 @@ glob THRESHOLD: float = 0.85,
      LIVE_EVAL_PATH: str = os.path.join(_ROOT, "data", "live_eval.json");
 
 
-def load_dataset -> list[dict] {
+def load_dataset -> list[dict[str, any]] {
     with open(DATASET_PATH, encoding="utf-8") as f {
-        return (json.load(f) as dict)["messages"] as list[dict];
+        return (json.load(f) as dict[str, any])["messages"] as list[dict[str, any]];
     }
 }
 
@@ -54,7 +54,7 @@ def _ratio(part: int, total: float) -> float {
 
 """Score predictions against labels. Each row: id, label, scam_type,
 risk, predicted_type."""
-def score(rows: list[dict]) -> dict {
+def score(rows: list[dict[str, any]]) -> dict[str, any] {
     correct = [r for r in rows if predicted_label(str(r["risk"])) == r["label"]];
     typed = [r for r in rows if r["predicted_type"] == r["scam_type"]];
     total: float = float(max(len(rows), 1));
@@ -68,7 +68,7 @@ def score(rows: list[dict]) -> dict {
 }
 
 
-def _judgement_dict(result: any) -> dict {
+def _judgement_dict(result: any) -> dict[str, any] {
     j = result.judgement;
     return {
         "risk": j.risk.value,
@@ -89,7 +89,7 @@ def _archive_previous_run {
         return;
     }
     with open(LIVE_EVAL_PATH, encoding="utf-8") as f {
-        previous = json.load(f) as dict;
+        previous = json.load(f) as dict[str, any];
     }
     history = os.path.join(_ROOT, "data", "live_eval_history");
     os.makedirs(history, exist_ok=True);
@@ -125,7 +125,7 @@ def _guard_with_retry(run_guard: any, msg: any) -> any {
 def live_eval -> int {
     import from endpoints { IngestMessage, Reset }
     import from guard { GuardResult, apply_verdict, run_guard }
-    import from graph { Message }
+    import from model { Message }
     # jac.toml resolves ${OPENAI_API_KEY} when jac starts, so the key must be
     # in the environment before `jac run` (see README: "Load .env").
     if not os.environ.get("OPENAI_API_KEY") {
@@ -141,8 +141,8 @@ def live_eval -> int {
     delay = float(os.getenv("EVAL_DELAY_SEC", "3"));
 
     root spawn Reset(secret=os.environ["PESA_ADMIN_SECRET"]);
-    rows: list[dict] = [];
-    cache: dict = {};
+    rows: list[dict[str, any]] = [];
+    cache: dict[str, any] = {};
     dataset = load_dataset();
     for (i, m) in enumerate(dataset) {
         ingested = root spawn IngestMessage(
@@ -197,6 +197,6 @@ with entry:__main__ {
     if sys.argv[1:] == ["live"] {
         sys.exit(live_eval());
     }
-    print("usage: jac run evals.jac live");
+    print("usage: jac run --no-serve --no-takeover evals.jac live");
     sys.exit(2);
 }

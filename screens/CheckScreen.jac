@@ -29,7 +29,7 @@ def:pub CheckScreen(lang: str) -> JsxElement {
     has text: str = "",
         fromKind: str = "",
         token: str = getToken(),
-        result: dict | None = None,
+        result: dict[str, any] | None = None,
         error: str = "",
         busy: bool = False;
 
@@ -52,7 +52,7 @@ def:pub CheckScreen(lang: str) -> JsxElement {
         busy = False;
         failure = str(reply["error"]);
         if not failure {
-            result = (reply["reports"] as list[dict])[0];
+            result = (reply["reports"] as list[dict[str, any]])[0];
         } elif "forbidden" in failure {
             error = "That access code was not accepted.";
         } elif "rate_limited" in failure {
@@ -69,7 +69,7 @@ def:pub CheckScreen(lang: str) -> JsxElement {
             </label>
             <textarea
                 value={text}
-                onChange={lambda e: ChangeEvent { text = e.target.value; }}
+                onChange={lambda (e: ChangeEvent) { text = e.target.value; }}
                 rows={6}
                 maxLength={2000}
                 placeholder="e.g. Your loan is approved. Pay a Ksh 500 fee to till ..."
@@ -90,7 +90,7 @@ def:pub CheckScreen(lang: str) -> JsxElement {
                             key={c["label"]}
                             type="button"
                             aria-pressed={fromKind == c["value"]}
-                            onClick={lambda -> None { fromKind = c["value"]; }}
+                            onClick={lambda { fromKind = c["value"]; }}
                             style={{
                                 "minHeight": "44px",
                                 "padding": "0 0.8rem",
@@ -112,7 +112,7 @@ def:pub CheckScreen(lang: str) -> JsxElement {
                 type="password"
                 value={token}
                 autoComplete="off"
-                onChange={lambda e: ChangeEvent { token = e.target.value; }}
+                onChange={lambda (e: ChangeEvent) { token = e.target.value; }}
                 style={{
                     "width": "100%",
                     "boxSizing": "border-box",

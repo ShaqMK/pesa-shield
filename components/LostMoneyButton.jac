@@ -32,7 +32,7 @@ def:pub LostMoneyButton(messageId: str) -> JsxElement {
         busy = False;
         failure = str(reply["error"]);
         if not failure {
-            navigate("/cases/" + (reply["reports"] as list[dict])[0]["id"]);
+            navigate("/cases/" + (reply["reports"] as list[dict[str, any]])[0]["id"]);
         } elif "forbidden" in failure {
             askToken = True;
             error = "That access code was not accepted.";
@@ -49,7 +49,7 @@ def:pub LostMoneyButton(messageId: str) -> JsxElement {
                     type="password"
                     value={token}
                     autoComplete="off"
-                    onChange={lambda e: ChangeEvent { token = e.target.value; }}
+                    onChange={lambda (e: ChangeEvent) { token = e.target.value; }}
                     style={{
                         "display": "block",
                         "width": "100%",
@@ -66,7 +66,7 @@ def:pub LostMoneyButton(messageId: str) -> JsxElement {
         }}
         <button
             type="button"
-            onClick={lambda -> None { start(); }}
+            onClick={lambda { start(); }}
             disabled={busy}
             style={{
                 "width": "100%",

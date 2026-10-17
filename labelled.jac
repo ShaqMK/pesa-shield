@@ -10,7 +10,7 @@ import json;
 import hashlib;
 
 glob _CONFIG_DIR: str = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config"),
-     _cache: dict | None = None;
+     _cache: dict[str, any] | None = None;
 
 
 def config_path(name: str) -> str {
@@ -36,12 +36,11 @@ def labelled_key(raw_text: str) -> str {
 
 
 """Verdicts for the labelled synthetic set, keyed by cache_key(raw text)."""
-def verdict_cache -> dict {
-    global _cache;
+def verdict_cache -> dict[str, any] {
     if _cache is None {
         with open(config_path("verdict_cache.json"), encoding="utf-8") as f {
-            _cache = json.load(f) as dict;
+            _cache = json.load(f) as dict[str, any];
         }
     }
-    return _cache as dict;
+    return _cache as dict[str, any];
 }

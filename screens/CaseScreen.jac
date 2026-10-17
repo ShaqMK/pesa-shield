@@ -34,7 +34,7 @@ glob STATUS_WORDS: dict[str, str] = {
 def:pub CaseScreen(lang: str) -> JsxElement {
     params = useParams();
     caseId = params["id"] or "";
-    has data: dict | None = None,
+    has data: dict[str, any] | None = None,
         draftEn: str = "",
         draftSw: str = "",
         chosen: list[str] = [],
@@ -43,7 +43,7 @@ def:pub CaseScreen(lang: str) -> JsxElement {
         notice: str = "",
         error: str = "";
 
-    def adopt(view: dict) {
+    def adopt(view: dict[str, any]) {
         data = view;
         draftEn = str(view["body_en"]);
         draftSw = str(view["body_sw"]);
@@ -56,10 +56,10 @@ def:pub CaseScreen(lang: str) -> JsxElement {
             error = str(reply["error"]);
             return;
         }
-        adopt((reply["reports"] as list[dict])[0]);
+        adopt((reply["reports"] as list[dict[str, any]])[0]);
     }
 
-    async def act(walkerName: str, body: dict) -> bool {
+    async def act(walkerName: str, body: dict[str, any]) -> bool {
         if not token.strip() {
             error = "Enter your access code first.";
             return False;
@@ -75,7 +75,7 @@ def:pub CaseScreen(lang: str) -> JsxElement {
             error = "That access code was not accepted." if "forbidden" in failure else failure;
             return False;
         }
-        adopt((reply["reports"] as list[dict])[0]);
+        adopt((reply["reports"] as list[dict[str, any]])[0]);
         return True;
     }
 
@@ -101,7 +101,7 @@ def:pub CaseScreen(lang: str) -> JsxElement {
     }
 
     async def copyText -> None {
-        shown = data as dict;
+        shown = data as dict[str, any];
         text = shown["final_text_sw"] if lang == "sw" else shown["final_text_en"];
         clip: any = navigator.clipboard;
         await clip.writeText(text);
@@ -123,10 +123,10 @@ def:pub CaseScreen(lang: str) -> JsxElement {
     if not data {
         return <p style={{"color": "#888"}}>Loading…</p>;
     }
-    view = data as dict;
+    view = data as dict[str, any];
     isPending = view["status"] == "awaiting_approval";
-    timeline = view["timeline"] as list[dict];
-    facts = view["facts"] as list[dict];
+    timeline = view["timeline"] as list[dict[str, any]];
+    facts = view["facts"] as list[dict[str, any]];
     available = view["available_recipients"] as list[str];
 
     return <section>
@@ -163,7 +163,7 @@ def:pub CaseScreen(lang: str) -> JsxElement {
                     type="checkbox"
                     checked={label in chosen}
                     disabled={not isPending}
-                    onChange={lambda e: ChangeEvent { toggleRecipient(label); }}
+                    onChange={lambda (e: ChangeEvent) { toggleRecipient(label); }}
                     style={{"width": "22px", "height": "22px"}}
                 />
                 {label}
@@ -179,7 +179,7 @@ def:pub CaseScreen(lang: str) -> JsxElement {
         {if isPending {
             <textarea
                 value={draftSw if lang == "sw" else draftEn}
-                onChange={lambda e: ChangeEvent {
+                onChange={lambda (e: ChangeEvent) {
                     if lang == "sw" { draftSw = e.target.value; } else { draftEn = e.target.value; }
                 }}
                 rows={12}
@@ -204,27 +204,27 @@ def:pub CaseScreen(lang: str) -> JsxElement {
                         type="password"
                         value={token}
                         autoComplete="off"
-                        onChange={lambda e: ChangeEvent { token = e.target.value; }}
+                        onChange={lambda (e: ChangeEvent) { token = e.target.value; }}
                         style={{"display": "block", "width": "100%", "boxSizing": "border-box", "minHeight": "44px", "fontSize": "16px", "marginTop": "0.3rem", "padding": "0 0.6rem", "border": "1px solid #bbb", "borderRadius": "8px"}}
                     />
                 </label>
                 <div style={{"display": "flex", "gap": "0.5rem", "marginTop": "0.6rem"}}>
-                    <button type="button" disabled={busy} onClick={lambda -> None { approve(); }}
+                    <button type="button" disabled={busy} onClick={lambda { approve(); }}
                         style={{**BUTTON, "border": "none", "backgroundColor": "#1a3fb0", "color": "#fff"}}>
                         Approve
                     </button>
-                    <button type="button" disabled={busy} onClick={lambda -> None { saveEdits(); }}
+                    <button type="button" disabled={busy} onClick={lambda { saveEdits(); }}
                         style={{**BUTTON, "border": "1px solid #1a3fb0", "backgroundColor": "#fff", "color": "#1a3fb0"}}>
                         Save edits
                     </button>
-                    <button type="button" disabled={busy} onClick={lambda -> None { discard(); }}
+                    <button type="button" disabled={busy} onClick={lambda { discard(); }}
                         style={{**BUTTON, "border": "1px solid #a61b1b", "backgroundColor": "#fff", "color": "#a61b1b"}}>
                         Discard
                     </button>
                 </div>
             </div>
         } elif view["status"] == "approved" {
-            <button type="button" onClick={lambda -> None { copyText(); }}
+            <button type="button" onClick={lambda { copyText(); }}
                 style={{**BUTTON, "width": "100%", "marginTop": "0.6rem", "border": "none", "backgroundColor": "#1a3fb0", "color": "#fff"}}>
                 Copy report
             </button>

@@ -9,7 +9,7 @@ import from .RiskBadge {
 }
 
 
-def:pub MessageCard(message: dict) -> JsxElement {
+def:pub MessageCard(message: dict[str, any]) -> JsxElement {
     reasons = (message["reasons"] or []) as list[str];
     return <Link
         to={"/message/" + message["id"]}

@@ -21,7 +21,7 @@ import from access {
     require_rate,
     require_secret
 }
-import from graph {
+import from model {
     Case,
     Message,
     PartOfCase,
@@ -39,7 +39,7 @@ glob MAX_CASE_MESSAGES: int = 10,
          r"(?i)\b(?:ksh|kes|sh|shilingi)\.?\s?\d[\d,]*(?:\.\d{1,2})?|\b\d[\d,]*\s?(?:bob\b|/=)"
      ),
      _TXN_CODE_RE = re.compile(r"\b(?=[A-Z0-9]*\d)(?=[A-Z0-9]*[A-Z])[A-Z0-9]{10}\b"),
-     _channels: list[dict] | None = None,
+     _channels: list[dict[str, any]] | None = None,
      SCAM_WORDS: dict[str, list[str]] = {
          "wrong_number_reversal": ["wrong-number reversal", "kurudisha pesa iliyotumwa kimakosa"],
          "fee_before_loan": ["fee-before-loan", "ada ya mkopo kabla ya kupewa mkopo"],
@@ -92,14 +92,13 @@ sem draft_narrative.timeline = "The scam messages in order, with identifiers rep
 sem draft_narrative.scam_type = "The scam pattern Guard matched, e.g. fee_before_loan.";
 
 
-def report_channels -> list[dict] {
-    global _channels;
+def report_channels -> list[dict[str, any]] {
     if _channels is None {
         with open(config_path("report_channels.json"), encoding="utf-8") as f {
-            _channels = (json.load(f) as dict)["channels"] as list[dict];
+            _channels = (json.load(f) as dict[str, any])["channels"] as list[dict[str, any]];
         }
     }
-    return _channels as list[dict];
+    return _channels as list[dict[str, any]];
 }
 
 
@@ -120,7 +119,7 @@ def gather_messages(start: Message) -> list[Message] {
             }
         }
     }
-    msgs = sorted(found.values(), key=lambda m: Message : float(m.created_at));
+    msgs = sorted(found.values(), key=lambda (m: Message) -> float { float(m.created_at); });
     return msgs[-MAX_CASE_MESSAGES:];
 }
 
@@ -290,7 +289,7 @@ walker:pub StartCase {
         timeline = build_timeline(msgs);
         facts = extract_facts(msgs);
         draft = draft_bodies(msgs, facts, timeline, start.scam_type);
-        c = (root ++> Case(
+        c = Case(
             created_at=str(now()),
             status=AWAITING,
             scam_type=start.scam_type,
@@ -300,7 +299,8 @@ walker:pub StartCase {
             body_en=draft.body_en,
             body_sw=draft.body_sw,
             drafted_by=draft.drafted_by
-        ))[0];
+        );
+        root ++> c;
         for m in msgs {
             m +>:PartOfCase:+> c;
         }
@@ -325,7 +325,7 @@ walker:pub ListCases {
     has reports: list[dict[str, any]] = [];
 
     can collect with Root entry {
-        for c in sorted([root -->[?:Case]], key=lambda c: Case : float(c.created_at), reverse=True) {
+        for c in sorted([root -->[?:Case]], key=lambda (c: Case) -> float { float(c.created_at); }, reverse=True) {
             report {
                 "id": jid(c),
                 "status": c.status,

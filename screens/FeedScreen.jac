@@ -12,7 +12,7 @@ import from ..services.api {
 
 
 def:pub FeedScreen() -> JsxElement {
-    has messages: list[dict] = [],
+    has messages: list[dict[str, any]] = [],
         loaded: bool = False,
         error: str = "";
 
@@ -20,7 +20,7 @@ def:pub FeedScreen() -> JsxElement {
         reply = await callWalker("WebFeed", {"limit": 50});
         error = str(reply["error"]);
         if not error {
-            messages = reply["reports"] as list[dict];
+            messages = reply["reports"] as list[dict[str, any]];
             loaded = True;
         }
     }

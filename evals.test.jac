@@ -2,7 +2,7 @@
 
 Replays the labelled synthetic set through the Check walker. Every message
 must be answered from the verdict cache written by the live eval
-(`jac run evals.jac live`), so no LLM is called and this number is never
+(`jac run --no-serve --no-takeover evals.jac live`), so no LLM is called and this number is never
 the reported accuracy - it only guards against breakage.
 """
 
@@ -22,9 +22,9 @@ test "regression check: cached verdicts on the labelled set clear the threshold"
     dataset = load_dataset();
     uncached = [m["id"] for m in dataset if not labelled_key(m["text"])];
     assert not uncached, (
-        "no cached verdict - run `jac run evals.jac live` first", uncached
+        "no cached verdict - run `jac run --no-serve --no-takeover evals.jac live` first", uncached
     );
-    rows: list[dict] = [];
+    rows: list[dict[str, any]] = [];
     for m in dataset {
         v = (root spawn Check(
             token="test-client-token", text=m["text"], sender=m["sender"]

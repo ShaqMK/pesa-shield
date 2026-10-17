@@ -24,7 +24,7 @@ glob WIDTH: int = 340,
 
 
 """Node id -> [x, y]: one cluster per pay target, its senders around it."""
-def layout(nodes: list[dict], edges: list[dict]) -> dict[str, list[float]] {
+def layout(nodes: list[dict[str, any]], edges: list[dict[str, any]]) -> dict[str, list[float]] {
     pos: dict[str, list[float]] = {};
     targets = [n for n in nodes if n["kind"] == "target"];
     for (i, t) in enumerate(targets) {
@@ -45,7 +45,7 @@ def layout(nodes: list[dict], edges: list[dict]) -> dict[str, list[float]] {
 
 
 """Baseline of a node's text: the count inside the circle, or the label below it."""
-def textY(pos: dict[str, list[float]], n: dict, below: bool) -> float {
+def textY(pos: dict[str, list[float]], n: dict[str, any], below: bool) -> float {
     y = float(pos[str(n["id"])][1]);
     if not below {
         return y + 5.0;
@@ -55,23 +55,23 @@ def textY(pos: dict[str, list[float]], n: dict, below: bool) -> float {
 
 
 def:pub GraphScreen() -> JsxElement {
-    has view: dict | None = None,
-        selected: dict | None = None,
-        messages: list[dict] = [],
+    has view: dict[str, any] | None = None,
+        selected: dict[str, any] | None = None,
+        messages: list[dict[str, any]] = [],
         error: str = "";
 
     async def loadGraph -> None {
         reply = await callWalker("GraphView", {});
         error = str(reply["error"]);
         if not error {
-            view = (reply["reports"] as list[dict])[0];
+            view = (reply["reports"] as list[dict[str, any]])[0];
         }
     }
 
-    async def openNode(picked: dict) -> None {
+    async def openNode(picked: dict[str, any]) -> None {
         selected = picked;
         reply = await callWalker("NodeMessages", {"node_id": picked["id"]});
-        messages = reply["reports"] as list[dict];
+        messages = reply["reports"] as list[dict[str, any]];
     }
 
     useEffect(lambda {
@@ -86,10 +86,10 @@ def:pub GraphScreen() -> JsxElement {
     if not view {
         return <p style={{"color": "#888"}}>Loading…</p>;
     }
-    data = view as dict;
-    rings = data["rings"] as list[dict];
-    nodes = data["nodes"] as list[dict];
-    edges = data["edges"] as list[dict];
+    data = view as dict[str, any];
+    rings = data["rings"] as list[dict[str, any]];
+    nodes = data["nodes"] as list[dict[str, any]];
+    edges = data["edges"] as list[dict[str, any]];
     pos = layout(nodes, edges);
     targetCount = len([n for n in nodes if n["kind"] == "target"]);
     height = max(targetCount, 1) * CLUSTER_HEIGHT;
@@ -143,7 +143,7 @@ def:pub GraphScreen() -> JsxElement {
                         role="button"
                         tabIndex={0}
                         aria-label={("Ring pay target " if n["ring_id"] else "") + str(n["label"]) + ", " + str(n["count"]) + " reports"}
-                        onClick={lambda -> None { openNode(n); }}
+                        onClick={lambda { openNode(n); }}
                         style={{"cursor": "pointer"}}
                     >
                         <circle

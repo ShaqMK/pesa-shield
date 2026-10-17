@@ -17,7 +17,7 @@ Rules (SPEC: Ring rules):
 
 import os;
 import json;
-import from graph {
+import from model {
     LinkedTo,
     Mentions,
     Message,
@@ -44,7 +44,7 @@ def known_legit_keys -> set[str] {
     secret = os.getenv("PESA_HMAC_SECRET", "");
     if secret not in _legit_keys_by_secret {
         with open(config_path("known_legit_targets.json"), encoding="utf-8") as f {
-            targets = (json.load(f) as dict)["targets"] as list[dict];
+            targets = (json.load(f) as dict[str, any])["targets"] as list[dict[str, any]];
         }
         _legit_keys_by_secret[secret] = {
             identifier_key(str(t["kind"]), str(t["value"])) for t in targets
@@ -159,7 +159,7 @@ walker:pub GraphView {
         targets = [t for t in [root -->[?:PayTarget]] if linked_senders(t)];
         targets = sorted(
             targets,
-            key=lambda t: PayTarget : (is_ring(t), len(ring_reports(t))),
+            key=lambda (t: PayTarget) -> tuple[bool, int] { (is_ring(t), len(ring_reports(t))); },
             reverse=True
         );
         rings: list[dict[str, any]] = [];
@@ -223,7 +223,7 @@ walker:pub NodeMessages {
         } elif isinstance(target, PayTarget) {
             msgs = [target <-:Mentions:<-];
         }
-        for m in sorted(msgs, key=lambda m: Message : float(m.created_at), reverse=True) {
+        for m in sorted(msgs, key=lambda (m: Message) -> float { float(m.created_at); }, reverse=True) {
             report message_view(m);
         }
     }

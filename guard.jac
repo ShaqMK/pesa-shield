@@ -20,7 +20,7 @@ import from access {
     require_secret,
     require_text
 }
-import from graph {
+import from model {
     MatchesPattern,
     Mentions,
     Message,
@@ -146,7 +146,7 @@ obj GuardResult {
 
 glob _run: GuardRun | None = None,
      _lock: threading.Lock = threading.Lock(),
-     _lenders: list[dict] | None = None;
+     _lenders: list[dict[str, any]] | None = None;
 
 
 def _record_tool_use(tool: str) {
@@ -214,12 +214,11 @@ known=False only means nobody has reported it yet; that alone is not suspicious.
 sem lookup_graph.token = "An identifier token from the message, e.g. [TILL_1] or [PHONE_1].";
 
 
-def _lender_list -> list[dict] {
-    global _lenders;
+def _lender_list -> list[dict[str, any]] {
     if _lenders is None {
-        _lenders = _load_json("lenders.json")["lenders"] as list[dict];
+        _lenders = _load_json("lenders.json")["lenders"] as list[dict[str, any]];
     }
-    return _lenders as list[dict];
+    return _lenders as list[dict[str, any]];
 }
 
 
@@ -291,7 +290,7 @@ unknown. Real mobile-money and bank confirmations come from registered sender ID
 so the content decides.""";
 
 
-def _judgement_from(d: dict) -> Judgement {
+def _judgement_from(d: dict[str, any]) -> Judgement {
     return Judgement(
         risk=Risk(d["risk"]),
         scam_type=ScamType(d["scam_type"]),
@@ -322,9 +321,8 @@ def run_guard(
     labelled: str,
     sender_kind: str
 ) -> GuardResult {
-    global _run;
     if labelled and labelled in verdict_cache() {
-        cached = _judgement_from(verdict_cache()[labelled] as dict);
+        cached = _judgement_from(verdict_cache()[labelled] as dict[str, any]);
         return GuardResult(judgement=_tidy(cached, entities), tools_used=[], cached=True);
     }
     with _lock {
@@ -372,9 +370,10 @@ def apply_verdict(msg: Message, result: GuardResult) {
             continue;
         }
         found = [root -->[?:PayTarget, key == e["key"]]];
-        target = found[0] if found else (
-            root ++> PayTarget(key=e["key"], kind=e["kind"], display=e["display"])
-        )[0];
+        target = found[0] if found else PayTarget(key=e["key"], kind=e["kind"], display=e["display"]);
+        if not found {
+            root ++> target;
+        }
         msg +>:Mentions:+> target;
         linked.add(e["key"]);
     }

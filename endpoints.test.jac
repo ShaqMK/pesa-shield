@@ -122,18 +122,18 @@ def _check_ring_formation {
 
     third = _ingest_and_guard("+254700310003", template.format(till="660011"));
 
-    graph = (root spawn GraphView()).reports[0];
-    rings = graph["rings"];
+    view = (root spawn GraphView()).reports[0];
+    rings = view["rings"];
     assert len(rings) == 1, rings;
     assert rings[0]["senders"] == 3 and rings[0]["reports"] == 3, rings;
-    linked = [e for e in graph["edges"] if e["kind"] == "LinkedTo"];
+    linked = [e for e in view["edges"] if e["kind"] == "LinkedTo"];
     assert len(linked) == 4, linked;  # 3 ring senders + the lookalike's own till
     for mid in [first, second, third] {
         v = (root spawn GetMessage(message_id=mid)).reports[0];
         assert v["ring_id"] == rings[0]["ring_id"], v;
         assert v["risk"] == "high", v;
         assert len(v["reasons"]) <= 3, v;
-        assert "also reported from 2 other numbers" in " ".join(v["reasons"]), v;
+        assert "also reported from 2 other numbers" in " ".join(v["reasons"] as list[str]), v;
     }
     other = (root spawn GetMessage(message_id=lookalike)).reports[0];
     assert other["risk"] == "medium" and not other["ring_id"], other;

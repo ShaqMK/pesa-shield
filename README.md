@@ -28,10 +28,13 @@ clear action. Nothing is ever sent or reported automatically.
 
 ## Quick start (about 10 minutes)
 
-Needs Python 3.12 and Node.js (jac-client installs Bun itself on first start).
+Pesa Shield runs on the native **`jac` 0.37.25** binary (Linux/macOS; on Windows use WSL),
+the same version Jac Hammer runs:
 
 ```bash
-pip install jaclang==0.16.7 jac-client==0.3.25 byllm==0.6.19
+curl -fsSL https://raw.githubusercontent.com/jaseci-labs/jaseci/main/scripts/install.sh | bash
+jac --version          # 0.37.25 (the version pinned in jac.toml)
+jac install            # project deps: litellm for byLLM, npm packages for the web client
 ```
 
 Copy `.env.example` to `.env` in the project folder and fill in the values (`.env` is
@@ -41,12 +44,12 @@ gitignored - never put secrets in `.env.example`):
 |---|---|
 | `OPENAI_API_KEY` | OpenAI key for Guard and report drafting (gpt-4o-mini) |
 | `PESA_WEBHOOK_SECRET` | Secret the SMS forwarder (and `simulate`) sends with each message |
-| `PESA_ADMIN_SECRET` | Secret for `Seed` / `Reset` / `GuardPending` |
+| `PESA_ADMIN_SECRET` | Secret for `reset` / `Seed` / `GuardPending` |
 | `PESA_HMAC_SECRET` | Server-side key for redaction; set once per deployment (changing it re-keys every sender) |
 | `PESA_CLIENT_TOKEN` | The "access code" the web app and CLI use for Check and case actions |
-| `PESA_SELF_URL` | Optional: how the server reaches itself to run Guard after ingestion (default `http://127.0.0.1:$PORT`) |
+| `PESA_SELF_URL` | How the server reaches itself to run Guard after ingestion. Locally the default (`http://localhost:8000`) works; **deployed, set it to the app's public URL** |
 
-Any long random strings work for the secrets, e.g. `python -c "import secrets; print(secrets.token_urlsafe(24))"`.
+Any long random strings work for the secrets, e.g. `python3 -c "import secrets; print(secrets.token_urlsafe(24))"`.
 
 **Load `.env` into the environment before running `jac`** - `jac.toml` reads
 `${OPENAI_API_KEY}` when jac starts:
@@ -55,47 +58,42 @@ Any long random strings work for the secrets, e.g. `python -c "import secrets; p
 set -a; . ./.env; set +a
 ```
 
-```powershell
-Get-Content .env | ForEach-Object { if ($_ -match '^\s*([^#=\s]+)\s*=\s*(.*)$') { Set-Item "env:$($Matches[1])" $Matches[2] } }
-```
-
-Run it:
+Run it (production mode; plain `jac run` is dev mode with hot reload):
 
 ```bash
-jac start main.jac
+jac run --no-dev
 ```
 
-Open http://localhost:3000 (phone width works; it is mobile-first). Then, in a second
-terminal with the same environment loaded:
+Open http://localhost:8000 (mobile-first; phone width works). The CLI is a script inside a
+web-app project, so give it a short alias, then use it from a second terminal with the same
+environment loaded:
 
 ```bash
-jac run cli.jac reset                       # clean demo state + seed the 8 scam Patterns
-jac run cli.jac simulate --delay 8          # stream the 44 labelled demo messages
-jac run cli.jac check "Your loan is approved. Pay Ksh 500 fee to till 908172" --lang sw
-jac run cli.jac graph                       # rings with sender and report counts
-jac run cli.jac case start <message_id>     # then: case show / edit / approve / discard
+alias pesashield='jac run --no-serve --no-takeover cli.jac'
+pesashield reset                         # clean demo state + seed the 8 scam Patterns
+pesashield simulate --delay 8            # stream the 44 labelled demo messages
+pesashield check "Your loan is approved. Pay Ksh 500 fee to till 908172" --lang sw
+pesashield graph                         # rings with sender and report counts
+pesashield case start <message_id>       # then: case show / edit / approve / discard
 ```
 
-The CLI is a thin HTTP client: `--base-url` (or `PESA_BASE_URL`) points it at a deployed
-server, so the CLI and the web app share one backend.
-
-> Local-dev note: `jac start` without jac-scale serves with a single-threaded HTTP server, and
-> some browsers' speculative preconnects can stall it. If the local app stops answering,
-> restart it; a deployed server is unaffected.
+The CLI is a thin HTTP client: `--base-url` (or `PESA_BASE_URL`, default
+`http://localhost:8000`) points it at a deployed server, so the CLI and the web app share one
+backend.
 
 ## Tests and the eval
 
 ```bash
 jac check .            # type-check every module
-jac script test        # integration checks, dedupe check, regression check
+jac x test             # integration checks, dedupe check, regression check
 ```
 
 - **Integration checks** (`endpoints.test.jac`): wrong/missing credentials rejected at every
   tier; three senders sharing a till form a ring and escalate; Recovery stops at
   `awaiting_approval` and only finalizes on approve. Plus one dedupe check.
 - **Live eval** - one pass of the labelled set against the real LLM, the accuracy figure for
-  the pitch: `jac run evals.jac live` (writes `data/live_eval.json` and
-  `config/verdict_cache.json`; earlier runs are kept in `data/live_eval_history/`).
+  the pitch: `jac run --no-serve --no-takeover evals.jac live` (writes `data/live_eval.json`
+  and `config/verdict_cache.json`; earlier runs are kept in `data/live_eval_history/`).
 - **Regression check** (`evals.test.jac`) - replays those cached verdicts through the Check
   walker; guards against breakage and is never reported as the accuracy.
 
@@ -116,15 +114,21 @@ Scam-type agreement on the re-run is 68.2%; the accuracy above is scam-vs-genuin
 
 ## Deploy (Jac Hammer)
 
-1. Create the app on Jac Hammer from this repository.
-2. Start command: `jac start main.jac --port $PORT` (the client bundle is built on start).
-3. Set every variable from the table above as a deployment secret / environment variable.
-   `PESA_HMAC_SECRET` must stay the same across redeploys.
-4. If Guard results never arrive (messages stay *analysing*), set `PESA_SELF_URL` to the
-   app's own public URL. Stuck or failed messages can be re-run with
-   `POST https://<your-app>/walker/GuardPending` and body `{"secret": "<PESA_ADMIN_SECRET>"}`.
-5. After each redeploy: `jac run cli.jac reset --base-url https://<your-app>` gives a clean,
-   seeded demo state (Patterns also auto-seed on the first message).
+1. In the Hammer project, **Environment variables -> Paste .env** and paste your `.env`
+   (`Get-Content .env | Set-Clipboard` on Windows, `cat .env` elsewhere). `PESA_HMAC_SECRET`
+   must stay the same across redeploys.
+2. Deploy `main`. Hammer installs the pinned `jac` (`jac-version = "==0.37.25"` in
+   `jac.toml`) and serves the `web-app`; it should run in production mode (`jac run --no-dev`)
+   - dev mode ignores the settings below.
+3. Once you have the app's URL, add `PESA_SELF_URL=https://<your-app>` and redeploy, so Guard
+   results arrive (otherwise messages stay *analysing*). Stuck or failed messages can be re-run
+   with `POST https://<your-app>/walker/GuardPending` and body `{"secret": "<PESA_ADMIN_SECRET>"}`.
+4. `pesashield reset --base-url https://<your-app>` gives a clean, seeded demo state (Patterns
+   also auto-seed on the first message).
+
+`jac.toml` locks down the built-in platform pages for a public deploy: no bootstrap
+`admin`/`changeme` account (`[scale.admin] enabled = false`), no Swagger and no built-in graph
+visualizer (`[serve] docs_enabled / graph_enabled = false`).
 
 ## SMS forwarder (Android, test messages only)
 
@@ -150,9 +154,9 @@ sent twice is deduplicated.
 | `guard.jac` | Guard: typed `by llm` judgement with tools, verdict cache, Check |
 | `rings.jac` | Ring rules, escalation, graph read walkers |
 | `recovery.jac` | Recovery: timeline, facts, typed report draft, case walkers |
-| `graph.jac`, `access.jac`, `labelled.jac`, `taxonomy.jac` | Graph model, credential tiers + rate limits, verdict cache, scam taxonomy |
-| `frontend.cl.jac`, `screens/`, `components/`, `services/` | The mobile-first web client |
-| `cli.jac` | The `check / simulate / graph / case / reset` CLI |
+| `model.jac`, `access.jac`, `labelled.jac`, `taxonomy.jac` | Graph model, credential tiers + rate limits, verdict cache, scam taxonomy |
+| `frontend.jac`, `screens/`, `components/`, `services/` | The mobile-first web client (placement inferred from JSX) |
+| `cli.jac` | The `check / simulate / graph / case / reset` CLI (`pesashield` alias) |
 | `evals.jac`, `evals.test.jac` | Scoring and the live eval; the regression check |
 | `data/synthetic_messages.json` | 44 labelled, fictional demo messages (incl. the ring triplet) |
 | `config/` | Placeholder lenders, report channels, known-legit targets; the verdict cache |

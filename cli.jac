@@ -1,13 +1,13 @@
 """pesashield CLI - a thin HTTP client over the deployed walker endpoints.
 
-    jac run cli.jac check "<message>" [--lang sw] [--base-url URL] [--token T]
-    jac run cli.jac simulate [--delay SEC] [--limit N] [--secret S] [--base-url URL]
-    jac run cli.jac graph [--base-url URL]
-    jac run cli.jac case start <message_id> | show <case_id> | approve <case_id> | discard <case_id> [--lang sw]
-    jac run cli.jac case edit <case_id> "<new report text>" [--lang sw]
-    jac run cli.jac reset [--admin-secret S] [--base-url URL]
+    jac run --no-serve --no-takeover cli.jac check "<message>" [--lang sw] [--base-url URL] [--token T]
+    jac run --no-serve --no-takeover cli.jac simulate [--delay SEC] [--limit N] [--secret S] [--base-url URL]
+    jac run --no-serve --no-takeover cli.jac graph [--base-url URL]
+    jac run --no-serve --no-takeover cli.jac case start <message_id> | show <case_id> | approve <case_id> | discard <case_id> [--lang sw]
+    jac run --no-serve --no-takeover cli.jac case edit <case_id> "<new report text>" [--lang sw]
+    jac run --no-serve --no-takeover cli.jac reset [--admin-secret S] [--base-url URL]
 
-Base URL: --base-url, else PESA_BASE_URL, else http://localhost:3000.
+Base URL: --base-url, else PESA_BASE_URL, else http://localhost:8000.
 Client token: --token, else PESA_CLIENT_TOKEN. Webhook secret (simulate):
 --secret, else PESA_WEBHOOK_SECRET. Admin secret (reset): --admin-secret,
 else PESA_ADMIN_SECRET. The CLI and the web UI call the same
@@ -25,16 +25,17 @@ import from urllib.request {
     urlopen
 }
 import from urllib.error {
+    HTTPError,
     URLError
 }
 
 glob USAGE: str = """usage:
-  jac run cli.jac check "<message>" [--lang en|sw] [--base-url URL] [--token T]
-  jac run cli.jac simulate [--delay SEC] [--limit N] [--secret S] [--base-url URL]
-  jac run cli.jac graph [--base-url URL]
-  jac run cli.jac case start <message_id> | show <case_id> | approve <case_id> | discard <case_id> [--lang sw]
-  jac run cli.jac case edit <case_id> "<new report text>" [--lang sw]
-  jac run cli.jac reset [--admin-secret S] [--base-url URL]""",
+  jac run --no-serve --no-takeover cli.jac check "<message>" [--lang en|sw] [--base-url URL] [--token T]
+  jac run --no-serve --no-takeover cli.jac simulate [--delay SEC] [--limit N] [--secret S] [--base-url URL]
+  jac run --no-serve --no-takeover cli.jac graph [--base-url URL]
+  jac run --no-serve --no-takeover cli.jac case start <message_id> | show <case_id> | approve <case_id> | discard <case_id> [--lang sw]
+  jac run --no-serve --no-takeover cli.jac case edit <case_id> "<new report text>" [--lang sw]
+  jac run --no-serve --no-takeover cli.jac reset [--admin-secret S] [--base-url URL]""",
      DATASET_PATH: str = os.path.join(
          os.path.dirname(os.path.abspath(__file__)), "data", "synthetic_messages.json"
      ),
@@ -59,7 +60,7 @@ obj CliArgs {
 
 def parse_args(argv: list[str]) -> CliArgs {
     args = CliArgs(
-        base_url=os.getenv("PESA_BASE_URL", "http://localhost:3000"),
+        base_url=os.getenv("PESA_BASE_URL", "http://localhost:8000"),
         token=os.getenv("PESA_CLIENT_TOKEN", ""),
         secret=os.getenv("PESA_WEBHOOK_SECRET", ""),
         admin_secret=os.getenv("PESA_ADMIN_SECRET", ""),
@@ -101,25 +102,32 @@ def parse_args(argv: list[str]) -> CliArgs {
 
 
 """POST a walker and return its reports; raise with the server's reason."""
-def call_walker(base_url: str, walker_name: str, body: dict) -> list {
+def call_walker(base_url: str, walker_name: str, body: dict[str, any]) -> list[any] {
     req = Request(
         base_url.rstrip("/") + "/walker/" + walker_name,
         data=json.dumps(body).encode(),
         headers={"Content-Type": "application/json"}
     );
-    envelope: dict = json.loads((urlopen(req, timeout=180).read() as bytes).decode()) as dict;
-    if not envelope.get("ok", False) {
-        raise RuntimeError(str((envelope.get("error") or {})));
+    try {
+        raw = (urlopen(req, timeout=180).read() as bytes).decode();
+    } except HTTPError as e {
+        # jac 0.37 answers a rejected call with HTTP 500 and an error envelope.
+        raw = (e.read() as bytes).decode();
     }
-    data = (envelope.get("data") or {}) as dict;
+    envelope: dict[str, any] = json.loads(raw) as dict[str, any];
+    if not envelope.get("ok", False) {
+        failure = (envelope.get("error") or {}) as dict[str, any];
+        raise RuntimeError(str(failure.get("message") or failure));
+    }
+    data = (envelope.get("data") or {}) as dict[str, any];
     if data.get("error") {
         raise RuntimeError(str(data["error"]));
     }
-    return (data.get("reports") or []) as list;
+    return (data.get("reports") or []) as list[any];
 }
 
 
-def print_verdict(v: dict, lang: str) {
+def print_verdict(v: dict[str, any], lang: str) {
     risk = str(v["risk"]).upper();
     scam = str(v["scam_type"]).replace("_", " ");
     print(f"Risk: {risk}  ({scam}){'  [cached]' if v['cached'] else ''}");
@@ -144,7 +152,7 @@ def print_verdict(v: dict, lang: str) {
 """Stream the synthetic set to the ingestion webhook, one message per delay."""
 def simulate(args: CliArgs) -> int {
     with open(DATASET_PATH, encoding="utf-8") as f {
-        messages = (json.load(f) as dict)["messages"] as list[dict];
+        messages = (json.load(f) as dict[str, any])["messages"] as list[dict[str, any]];
     }
     if args.limit > 0 {
         messages = messages[:args.limit];
@@ -157,7 +165,7 @@ def simulate(args: CliArgs) -> int {
                 "IngestMessage",
                 {"secret": args.secret, "sender": m["sender"], "text": m["text"]}
             );
-            r = reports[0] as dict;
+            r = reports[0] as dict[str, any];
             note = "  (duplicate)" if r.get("dedupe") else "";
             print(f"[{i + 1}/{len(messages)}] {m['id']} -> {r['status']}{note}");
         } except URLError as e {
@@ -178,9 +186,9 @@ def simulate(args: CliArgs) -> int {
 
 
 """Print the scam rings: pay target, linked senders, medium/high reports."""
-def graph(args: CliArgs) -> int {
+def show_graph(args: CliArgs) -> int {
     try {
-        view = call_walker(args.base_url, "GraphView", {})[0] as dict;
+        view = call_walker(args.base_url, "GraphView", {})[0] as dict[str, any];
     } except URLError as e {
         print(f"cannot reach {args.base_url}: {e.reason}");
         return 2;
@@ -188,7 +196,7 @@ def graph(args: CliArgs) -> int {
         print(f"rejected: {e}");
         return 1;
     }
-    rings = view["rings"] as list[dict];
+    rings = view["rings"] as list[dict[str, any]];
     if not rings {
         print("No rings yet (a ring needs 3 senders sharing one pay target).");
         return 0;
@@ -201,15 +209,15 @@ def graph(args: CliArgs) -> int {
 }
 
 
-def print_case(c: dict, lang: str) {
+def print_case(c: dict[str, any], lang: str) {
     print(f"Case {c['id']}  status: {c['status']}");
     print("");
     print("What happened:");
-    for t in c["timeline"] as list[dict] {
+    for t in c["timeline"] as list[dict[str, any]] {
         print(f"  {t['at']}  {t['summary']}");
     }
     print("Facts (masked, as in the messages):");
-    for f in c["facts"] as list[dict] {
+    for f in c["facts"] as list[dict[str, any]] {
         print(f"  {f['kind']}: {f['value']}");
     }
     print("Send to (you send it): " + "; ".join(c["recipients"] as list[str]));
@@ -221,7 +229,7 @@ def print_case(c: dict, lang: str) {
         print("DRAFT - awaiting your approval (nothing has been sent):");
         print(c["body_sw"] if lang == "sw" else c["body_en"]);
         print("");
-        print(f"Approve with: jac run cli.jac case approve {c['id']}");
+        print(f"Approve with: jac run --no-serve --no-takeover cli.jac case approve {c['id']}");
     } else {
         print("Discarded.");
     }
@@ -243,7 +251,7 @@ def case_command(args: CliArgs) -> int {
         return 2;
     }
     (walker_name, id_field) = (actions[args.positional[0]][0], actions[args.positional[0]][1]);
-    body: dict = {id_field: args.positional[1]};
+    body: dict[str, any] = {id_field: args.positional[1]};
     if walker_name == "EditCase" {
         body["body_sw" if args.lang == "sw" else "body_en"] = args.positional[2];
     }
@@ -259,7 +267,7 @@ def case_command(args: CliArgs) -> int {
         print(f"rejected: {e}");
         return 1;
     }
-    print_case(reports[0] as dict, args.lang);
+    print_case(reports[0] as dict[str, any], args.lang);
     return 0;
 }
 
@@ -267,7 +275,7 @@ def case_command(args: CliArgs) -> int {
 """One-command clean demo state: wipe messages, cases and rings, re-seed."""
 def reset(args: CliArgs) -> int {
     try {
-        r = call_walker(args.base_url, "Reset", {"secret": args.admin_secret})[0] as dict;
+        r = call_walker(args.base_url, "Reset", {"secret": args.admin_secret})[0] as dict[str, any];
     } except URLError as e {
         print(f"cannot reach {args.base_url}: {e.reason}");
         return 2;
@@ -286,7 +294,7 @@ def run(argv: list[str]) -> int {
         return simulate(args);
     }
     if args.command == "graph" {
-        return graph(args);
+        return show_graph(args);
     }
     if args.command == "case" {
         return case_command(args);
@@ -306,7 +314,7 @@ def run(argv: list[str]) -> int {
             print(f"rejected: {e}");
             return 1;
         }
-        print_verdict(reports[0] as dict, args.lang);
+        print_verdict(reports[0] as dict[str, any], args.lang);
         return 0;
     }
     print(USAGE);

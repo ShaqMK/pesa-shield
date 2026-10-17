@@ -25,7 +25,7 @@ import from access {
     require_secret,
     require_text
 }
-import from graph {
+import from model {
     Case,
     Message,
     PayTarget,
@@ -52,11 +52,12 @@ glob DEDUPE_WINDOW_SEC: float = 600.0;
 
 """Where this server reaches itself to run Guard after the ingest response.
 
-PESA_SELF_URL overrides; "off" disables (tests). Default: this host on $PORT
-(else 3000, the jac.toml port).
+PESA_SELF_URL overrides; "off" disables (tests). Default: this host on the
+served port - JAC_SERVE_PORT, else PORT, else 8000 (the jac 0.37 default).
 """
 def _self_url -> str {
-    return os.getenv("PESA_SELF_URL", f"http://127.0.0.1:{os.getenv('PORT', '3000')}");
+    port = os.getenv("JAC_SERVE_PORT") or os.getenv("PORT") or "8000";
+    return os.getenv("PESA_SELF_URL", f"http://localhost:{port}");
 }
 
 
@@ -78,6 +79,7 @@ def kick_guard(message_id: str) {
     for attempt in range(3) {
         sleep(0.2 + attempt);
         try {
+            # A rejected call raises (HTTP 500 on jac 0.37); it is logged below.
             req = Request(
                 base.rstrip("/") + "/walker/GuardMessage",
                 data=body,
@@ -135,11 +137,12 @@ walker:pub IngestMessage {
             seed_patterns();
         }
 
-        sender = existing[0] if existing else (
-            root ++> Sender(key=identity.key, display=identity.display)
-        )[0];
+        sender = existing[0] if existing else Sender(key=identity.key, display=identity.display);
+        if not existing {
+            root ++> sender;
+        }
 
-        msg = (sender ++> Message(
+        msg = Message(
             display=redacted.display,
             llm_text=redacted.llm_text,
             fingerprint=redacted.fingerprint,
@@ -151,9 +154,11 @@ walker:pub IngestMessage {
             created_at=str(now()),
             template_hash=template_hash(redacted.llm_text),
             cache_key=labelled_key(self.text)
-        ))[0];
-        flow kick_guard(jid(msg));
-        report {"id": jid(msg), "status": "analysing"};
+        );
+        sender ++> msg;
+        message_id = jid(msg);
+        flow kick_guard(message_id);
+        report {"id": message_id, "status": "analysing"};
     }
 }
 
@@ -165,7 +170,7 @@ walker:pub WebFeed {
 
     can collect with Root entry {
         msgs = sorted(
-            all_messages(), key=lambda m: Message : float(m.created_at), reverse=True
+            all_messages(), key=lambda (m: Message) -> float { float(m.created_at); }, reverse=True
         );
         for m in msgs[:self.limit] {
             report message_view(m);

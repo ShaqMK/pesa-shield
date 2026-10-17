@@ -6,7 +6,7 @@ still `analysing`. Server rejections arrive as HTTP 200 with the reason in
 `data.error` (jac 0.16.7); both shapes come back here as `error`.
 """
 
-async def:pub callWalker(name: str, body: dict, timeoutMs: int = 60000) -> dict {
+async def:pub callWalker(name: str, body: dict[str, any], timeoutMs: int = 60000) -> dict[str, any] {
     payload: any = None;
     signals: any = globalThis["AbortSignal"];
     try {

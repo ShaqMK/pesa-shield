@@ -42,7 +42,7 @@ def:pub BackToFeed() -> JsxElement {
 def:pub MessageScreen(lang: str) -> JsxElement {
     params = useParams();
     messageId = params["id"] or "";
-    has message: dict | None = None,
+    has message: dict[str, any] | None = None,
         error: str = "";
     # Latest status for the poller, outside render state so the interval
     # never works from a stale closure.
@@ -54,7 +54,7 @@ def:pub MessageScreen(lang: str) -> JsxElement {
             error = str(reply["error"]);
             return;
         }
-        reports = reply["reports"] as list[dict];
+        reports = reply["reports"] as list[dict[str, any]];
         found = reports[0] if len(reports) > 0 else None;
         if not found or found["status"] == "not_found" {
             statusRef.current = "not_found";
@@ -89,7 +89,7 @@ def:pub MessageScreen(lang: str) -> JsxElement {
             <p style={{"color": "#888"}}>Loading…</p>
         </section>;
     }
-    shown = message as dict;
+    shown = message as dict[str, any];
     return <section>
         <BackToFeed/>
         <div style={{"display": "flex", "justifyContent": "space-between", "gap": "0.5rem", "alignItems": "center"}}>

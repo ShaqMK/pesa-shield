@@ -2,22 +2,28 @@
 name = "pesashield"
 version = "0.1.0"
 description = "Pesa Shield - SMS scam guard agent in Jac"
-entry-point = "main.jac"
-kind = "fullstack"
-jac-version = "==0.16.7"
+entry-point = "main"
+kind = "web-app"
+jac-version = "==0.37.25"
 
-[plugins.byllm.model]
+[byllm.model]
 default_model = "gpt-4o-mini"
 api_key = "${OPENAI_API_KEY}"
 
-[plugins.client]
+[client]
+
+# Public deploy: no bootstrap admin account (it would be admin/changeme), no
+# Swagger, no built-in graph visualizer (it would expose the shared graph and
+# shadows the app's /graph tab).
+[scale.admin]
+enabled = false
 
 [serve]
-port = 3000
-base_route_app = "app"
+docs_enabled = false
+graph_enabled = false
+
 
 [dependencies]
-jac-client = "==0.3.25"
 
 [dependencies.npm]
 react = "^19.2.0"
@@ -39,5 +45,5 @@ typescript = "^5.3.3"
 [dev-dependencies]
 
 [scripts]
-# "e*" = endpoints (integration checks) + evals (the regression check).
-test = "jac test -f e*"
+# Run with `jac x test`: integration checks, dedupe check, regression check.
+test = "jac test"

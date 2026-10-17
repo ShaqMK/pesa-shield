@@ -13,11 +13,11 @@ Measured over the repository's files, excluding docs (`.md`), generated eval out
 | **Jac share** | | **94.8%** (target ≥ 80%) |
 
 There is no Python, JavaScript or TypeScript source; the browser app is Jac compiled to
-React by jac-client.
+React by the client capability built into `jac`.
 
 ## Object-spatial programming (the graph)
 
-- **Nodes**: `Sender`, `Message`, `PayTarget`, `Pattern`, `Case` (`graph.jac`), all on the
+- **Nodes**: `Sender`, `Message`, `PayTarget`, `Pattern`, `Case` (`model.jac`), all on the
   shared root that anonymous `:pub` walkers run on.
 - **Typed edges with declared endpoints**: `SentBy: Message --> Sender`,
   `Mentions: Message --> PayTarget`, `MatchesPattern: Message --> Pattern`,
@@ -53,51 +53,59 @@ React by jac-client.
 
 ## jac-client (the web app)
 
-- `.cl.jac` components with `has` reactive state, `useEffect` polling, `async def` handlers,
+- Client components (placement inferred from JSX) with `has` reactive state, `useEffect` polling, `async def` handlers,
   JSX with statement slots (`{for ...}`, `{if ...}`), `lang` attributes for Swahili text.
 - Routing with `Router` / `Routes` / `Route` / `Link` / `useParams` / `useNavigate` from
   `@jac/runtime`; a fixed bottom tab bar.
 - A hand-written SVG graph (`<svg>`, `<line>`, `<circle>`, `<text>`) computed in Jac.
-- `cl { }` block and global stylesheet import in `main.jac`.
+- A global stylesheet import and the `app` component in `main.jac`; client vs server
+  placement is inferred, no markers.
 
 ## Language and tooling
 
 - `obj`, `enum Name: str`, `glob`, typed `has` fields with defaults, `as` casts, typed
-  lambdas, `with entry:__main__` for the CLI (`jac run cli.jac <command>`).
+  braced lambdas, `with entry:__main__` for the CLI
+  (`jac run --no-serve --no-takeover cli.jac <command>`).
 - `.test.jac` annexes run by `jac test`; `jac check` on every change; `[scripts]` in
-  `jac.toml` (`jac script test`).
+  `jac.toml` (`jac x test`).
 
 ## Version notes
 
-The spec originally pinned "jac 0.37.21" and asked for 0.34 → 0.37 differences. That version
-does not exist on PyPI; the project runs on **jaclang 0.16.7**, **jac-client 0.3.25** and
-**byllm 0.6.19** (the newest releases). These are the differences and pitfalls we actually hit:
+The project targets the native **`jac` 0.37.25** binary - the toolchain Jac Hammer runs (the
+spec's original pin, 0.37.21, is the same line; GitHub releases, not PyPI). Slices T2-T8 were
+first built on the PyPI `jaclang` 0.16.7 line and then ported. What changed between the two,
+and what we hit:
 
-1. `++>` returns a **list** of the connected nodes - index `[0]`; `+>:E:+>` returns the
-   target node, not the edge (read edges back with `[edge a ->:E:-> b]`).
-2. Lambdas must be typed (`lambda m: Message : float(m.created_at)`).
-3. Client code must live in `.cl.jac` files (or a `cl { }` block in `main.jac`), components
-   must `return` their JSX, and the jac-client plugin must be installed.
-4. A bare `jac test` imports `.cl.jac` modules and fails; run `jac test -f <pattern>` (and the
-   `[test] filter` key is ignored by bare `jac test`).
-5. A walker that raises still answers **HTTP 200 / `ok: true`**, with the reason in
-   `data.error` (and its graph writes rolled back).
-6. jac-client caches read-only walker calls for 60 s, which froze a polled feed - the app
-   calls walkers with plain `fetch`.
-7. In JSX, `skip` inside a `{if ...}` slot ends only that slot, not the component - use early
-   returns.
-8. Python string helpers on loosely typed values (`.lower()`, `" ".join(...)` on dict
-   values) crashed in the compiled JavaScript; the built-in error screen then crashed too
-   (`t.error.message`), hiding the real error.
-9. `@schedule` walkers run on a different root than `:pub` walkers, and threads touching the
-   graph outside a request hung the server - hence Guard runs via a self-POST.
-10. `jac start` without jac-scale uses a single-threaded HTTP server; browser speculative
-    preconnects can stall it in local development.
-11. `jac.toml` `${VAR}` values are resolved when jac starts, so secrets must be in the
-    environment before `jac start` / `jac run` (no `.env` auto-load).
-12. Reserved words that bit us as identifiers: `node`, `walker`, `to`, `default`, `case`,
-    `awaiting`.
-13. `jac run` has no `--entry` flag; commands are `jac run cli.jac <command>`.
+1. **Client files**: 0.16.7 needed `.cl.jac` files and a `cl { }` block in `main.jac`; 0.37
+   retired both - placement is inferred from JSX/npm imports (`jac fix placement` migrates).
+2. **Lambdas** are braced with parenthesised params: `lambda (m: Message) -> float { ... }`
+   (0.16.7: `lambda m: Message : expr`).
+3. **`++>` returns the connected node** in 0.37 (a list in 0.16.7) - we construct nodes, then
+   connect them, which works on both.
+4. **No `global` statement** - assigning a `glob` inside a function rebinds it.
+5. **Bare generics are errors** - `dict`/`list` need type arguments (`dict[str, any]`).
+6. **New keywords**: `graph` (the module became `model.jac`), plus `node`, `walker`, `to`,
+   `default`, `case`, `awaiting` that already bit us.
+7. **`flow` can't capture graph nodes** across the concurrency boundary - pass ids.
+8. **`jac.toml`**: `entry-point` is a module name (`"main"`), kinds are `web-app` etc. (not
+   `fullstack`), capabilities are top-level tables (`[byllm.model]`, `[client]`; the old
+   `[plugins.*]` paths no longer parse), Python packages go in `[dependencies.pypi]`, and
+   `jac install` pulls capability deps (litellm) into `.jac/venv`.
+9. **CLI**: `jac start` / `jac script` are gone - `jac run` (`--no-dev` for production, plain
+   is dev with HMR), `jac x <script>`; a script inside a web-app project runs with
+   `jac run --no-serve --no-takeover`; `jac test -f` filters by test name.
+10. **Errors on the wire**: a raising walker answers HTTP 500 with `{ok: false, error}` in 0.37
+    (0.16.7 answered 200 with `data.error`); the CLI and web client handle both.
+11. **Built-in platform pages**: 0.37 bootstraps an `admin`/`changeme` account and serves
+    `/docs`, `/graph` (a public graph visualizer) - disabled in `jac.toml` for a public deploy,
+    which only takes effect in production mode.
+12. **Dev server**: 0.37 dev mode splits the app (Vite, port 8000) from the API (8001) and
+    proxies walker calls; the default port is 8000.
+
+Still true on both: the `skip`-in-a-JSX-slot pitfall (use early returns), Python string
+helpers on loosely typed values in client code, the 60 s client cache on read-only walker
+spawns (the app uses plain `fetch`), `${VAR}` in `jac.toml` resolved at startup (load `.env`
+first), and `@schedule` walkers not sharing the `:pub` root (Guard runs via a self-POST).
 
 ## AI-agent disclosure
 
