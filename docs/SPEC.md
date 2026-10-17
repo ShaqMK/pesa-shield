@@ -55,7 +55,7 @@ Kenyan mobile-money users receive scam SMS daily — "wrong number, please rever
 
 ## Implementation Decisions
 
-- **Language**: ≥80% Jac (jac 0.37.21). Only README, `jac.toml`, `.gitignore`, small static assets, small JSON seed/config files are non-Jac. No Python/JS/TS source files.
+- **Language**: ≥80% Jac (jaclang 0.16.7 + jac-client 0.3.25, the newest on PyPI; an earlier "jac 0.37.21" pin named a version that does not exist). Only README, `jac.toml`, `.gitignore`, small static assets, small JSON seed/config files are non-Jac. No Python/JS/TS source files.
 - **Endpoints**: every walker auto-exposed as `POST /walker/<name>` (jac-scale). Ingestion is a `:pub` walker; credentials and the auth split are defined in the Auth model below.
 - **Async ingestion**: `IngestMessage` validates the credential, redacts, dedupes, creates the nodes, and **returns immediately** with the message id and an `analysing` status. Guard runs after the response; the feed shows `analysing` until the verdict lands.
 - **Tracer bullet first**: slice 1 is a single tracer proving the core loop end to end — a webhook POST of a message appears in the web feed, deployed on Jac Hammer. The root/auth model (guest root vs per-user JWT, where walkers attach) follows from what that tracer shows about Jac Hammer's runtime, not from assumptions.

@@ -59,8 +59,9 @@ def _now -> float {
 
 """Reject unless `given` matches the secret configured in env var `env_name`.
 
-One helper for every credential tier (webhook, admin). Raised exceptions
-surface as ok=false rejections on the wire.
+One helper for every credential tier (webhook, admin). A raised exception
+aborts the walker's graph mutations; on the wire (jac 0.16.7) the response is
+still HTTP 200 / ok=true, with the reason in `data.error`.
 """
 def _require_secret(env_name: str, given: str) {
     expected = os.getenv(env_name, "");
@@ -122,7 +123,7 @@ Body fields: secret, sender, text. Returns { id, status: analysing }
 immediately; Guard analysis is a later slice. A duplicate (same sender key,
 identical redacted text within the window) returns the existing id with
 dedupe=true. Wrong or missing secret, invalid input and rate-limit overflow
-reject with ok=false.
+are rejected: nothing is stored and `data.error` carries the reason.
 """
 walker:pub IngestMessage {
     has secret: str = "",

@@ -15,10 +15,12 @@ import from endpoints {
     Reset
 }
 
-import from .frontend {
-    app as ClientApp
-}
+cl {
+    import from .frontend {
+        app as ClientApp
+    }
 
-def:pub app -> JsxElement {
-    return <ClientApp/>;
+    def:pub app -> JsxElement {
+        return <ClientApp/>;
+    }
 }

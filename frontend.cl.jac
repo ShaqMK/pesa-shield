@@ -12,7 +12,7 @@ import from .components.MessageCard {
     MessageCard
 }
 
-import from endpoints { WebFeed }
+sv import from endpoints { WebFeed }
 
 
 def:pub app -> JsxElement {
@@ -29,7 +29,7 @@ def:pub app -> JsxElement {
         return lambda { clearInterval(interval); };
     }, []);
 
-    <div
+    return <div
         style={{
             "maxWidth": "360px",
             "margin": "0 auto",
@@ -55,5 +55,5 @@ def:pub app -> JsxElement {
                 status={msg["status"]}
             />
         }}
-    </div>
+    </div>;
 }

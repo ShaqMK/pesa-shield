@@ -1,7 +1,7 @@
 """A single feed message card."""
 
 def:pub MessageCard(display: str, senderDisplay: str, status: str) -> JsxElement {
-    <div
+    return <div
         style={{
             "padding": "0.7rem 0.9rem",
             "marginBottom": "0.5rem",
@@ -26,5 +26,5 @@ def:pub MessageCard(display: str, senderDisplay: str, status: str) -> JsxElement
             </span>
         </div>
         <p style={{"margin": "0.35rem 0 0", "color": "#333", "fontSize": "0.88rem"}}>{display}</p>
-    </div>
+    </div>;
 }
