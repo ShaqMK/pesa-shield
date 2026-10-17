@@ -1,0 +1,8 @@
+{
+  "_note": "PLACEHOLDER SNAPSHOT - not real lender data. Verify any lender with the regulator before use.",
+  "lenders": [
+    {"name": "Example Licensed Lender A", "status": "licensed_placeholder"},
+    {"name": "Example Licensed Lender B", "status": "licensed_placeholder"},
+    {"name": "Example Unlicensed Lender X", "status": "unlicensed_placeholder"}
+  ]
+}

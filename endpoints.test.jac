@@ -11,6 +11,7 @@ def _use_test_secrets {
     os.environ["PESA_WEBHOOK_SECRET"] = "test-webhook-secret";
     os.environ["PESA_ADMIN_SECRET"] = "test-admin-secret";
     os.environ["PESA_HMAC_SECRET"] = "test-hmac-secret";
+    os.environ["PESA_SELF_URL"] = "off";
 }
 
 

@@ -207,3 +207,17 @@ def redact(text: str) -> Redacted {
         entities=entities
     );
 }
+
+
+"""Template hash (GLOSSARY): sha256 of the normalised neutral-token text.
+
+Token numbers and digits are blanked so the same template with different
+identifiers or amounts hashes alike. Secret-independent; never used for
+dedupe or ring linking.
+"""
+def template_hash(llm_text: str) -> str {
+    blanked: str = re.sub(r"\[([A-Z]+)_\d+\]", r"[\1]", llm_text).lower();
+    blanked = re.sub(r"\d", "0", blanked);
+    norm = " ".join(blanked.split());
+    return hashlib.sha256(norm.encode()).hexdigest()[:32];
+}

@@ -16,7 +16,7 @@ sv import from endpoints { WebFeed }
 
 
 def:pub app -> JsxElement {
-    has messages: list[dict[str, str]] = [];
+    has messages: list[dict[str, any]] = [];
 
     async def loadFeed -> None;
 
@@ -53,6 +53,12 @@ def:pub app -> JsxElement {
                 display={msg["display"]}
                 senderDisplay={msg["sender_display"]}
                 status={msg["status"]}
+                risk={msg["risk"]}
+                scamType={msg["scam_type"]}
+                reasons={msg["reasons"]}
+                action={msg["action"]}
+                explanation={msg["explanation_en"]}
+                cached={msg["cached"]}
             />
         }}
     </div>;
