@@ -11,6 +11,11 @@ import from ..services.token {
     getToken,
     saveToken
 }
+import from .theme {
+    BUTTON,
+    INPUT,
+    ALERT
+}
 
 
 def:pub LostMoneyButton(messageId: str) -> JsxElement {
@@ -41,26 +46,16 @@ def:pub LostMoneyButton(messageId: str) -> JsxElement {
         }
     }
 
-    return <div style={{"marginTop": "1.2rem", "borderTop": "1px solid #e3e6ea", "paddingTop": "0.9rem"}}>
+    return <div style={{"display": "flex", "flexDirection": "column", "gap": "8px", "marginTop": "14px"}}>
         {if askToken {
-            <label style={{"display": "block", "fontWeight": "600", "marginBottom": "0.3rem"}}>
+            <label style={{"display": "flex", "flexDirection": "column", "gap": "6px", "fontWeight": "700", "fontSize": "13px"}}>
                 Access code
                 <input
                     type="password"
                     value={token}
                     autoComplete="off"
                     onChange={lambda (e: ChangeEvent) { token = e.target.value; }}
-                    style={{
-                        "display": "block",
-                        "width": "100%",
-                        "boxSizing": "border-box",
-                        "minHeight": "44px",
-                        "fontSize": "16px",
-                        "marginTop": "0.3rem",
-                        "padding": "0 0.6rem",
-                        "border": "1px solid #bbb",
-                        "borderRadius": "8px"
-                    }}
+                    style={INPUT}
                 />
             </label>
         }}
@@ -68,25 +63,15 @@ def:pub LostMoneyButton(messageId: str) -> JsxElement {
             type="button"
             onClick={lambda { start(); }}
             disabled={busy}
-            style={{
-                "width": "100%",
-                "minHeight": "48px",
-                "marginTop": "0.5rem",
-                "border": "1px solid #a61b1b",
-                "borderRadius": "8px",
-                "backgroundColor": "#fff",
-                "color": "#a61b1b",
-                "fontSize": "1rem",
-                "fontWeight": "600"
-            }}
+            style={{**BUTTON, "backgroundColor": "transparent", "color": "#b23a24", "boxShadow": "inset 0 0 0 1.5px #b23a24"}}
         >
             {"Building your case…" if busy else "I lost money"}
         </button>
-        <p style={{"fontSize": "0.78rem", "color": "#666", "margin": "0.4rem 0 0"}}>
+        <p style={{"fontSize": "12px", "color": "#6f817d", "margin": "0", "textAlign": "center"}}>
             Builds a timeline and a draft report for you to review. Nothing is sent.
         </p>
         {if error {
-            <p role="alert" style={{"color": "#a61b1b"}}>{error}</p>
+            <p role="alert" style={ALERT}>{error}</p>
         }}
     </div>;
 }

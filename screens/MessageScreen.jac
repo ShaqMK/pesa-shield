@@ -9,8 +9,13 @@ import from "@jac/runtime" {
     Link,
     useParams
 }
-import from ..components.RiskBadge {
-    RiskBadge
+import from ..components.Icon {
+    Icon
+}
+import from ..components.theme {
+    BACK,
+    ALERT,
+    MUTED
 }
 import from ..components.VerdictPanel {
     VerdictPanel
@@ -24,17 +29,9 @@ import from ..services.api {
 
 
 def:pub BackToFeed() -> JsxElement {
-    return <Link
-        to="/"
-        style={{
-            "display": "inline-flex",
-            "alignItems": "center",
-            "minHeight": "44px",
-            "color": "#1a3fb0",
-            "textDecoration": "none"
-        }}
-    >
-        ← Feed
+    return <Link to="/" style={BACK}>
+        <Icon name="back"/>
+        Feed
     </Link>;
 }
 
@@ -80,40 +77,41 @@ def:pub MessageScreen(lang: str) -> JsxElement {
     if error {
         return <section>
             <BackToFeed/>
-            <p role="alert" style={{"color": "#a61b1b"}}>{error}</p>
+            <p role="alert" style={ALERT}>{error}</p>
         </section>;
     }
     if not message {
         return <section>
             <BackToFeed/>
-            <p style={{"color": "#888"}}>Loading…</p>
+            <p style={MUTED}>Loading…</p>
         </section>;
     }
     shown = message as dict[str, any];
-    return <section>
+    waiting = {
+        "borderRadius": "26px",
+        "padding": "20px",
+        "backgroundColor": "#ece6d8",
+        "display": "flex",
+        "flexDirection": "column",
+        "gap": "10px",
+        "overflowWrap": "anywhere"
+    };
+    return <section style={{"display": "flex", "flexDirection": "column", "gap": "6px"}}>
         <BackToFeed/>
-        <div style={{"display": "flex", "justifyContent": "space-between", "gap": "0.5rem", "alignItems": "center"}}>
-            <strong>{shown["sender_display"]}</strong>
-            <RiskBadge risk={shown["risk"]} status={shown["status"]}/>
-        </div>
-        <blockquote
-            style={{
-                "margin": "0.6rem 0 0.9rem",
-                "padding": "0.7rem 0.8rem",
-                "backgroundColor": "#f8f9fa",
-                "borderLeft": "4px solid #ccd",
-                "overflowWrap": "anywhere"
-            }}
-        >
-            {shown["display"]}
-        </blockquote>
-        {if shown["status"] == "analysing" {
-            <p style={{"color": "#666"}}>Guard is checking this message…</p>
-        } elif shown["status"] == "failed" {
-            <p style={{"color": "#666"}}>The check could not finish. It will be retried.</p>
+        {if shown["status"] == "analysing" or shown["status"] == "failed" {
+            <div style={waiting}>
+                <strong style={{"fontSize": "15px"}}>{shown["sender_display"]}</strong>
+                <span style={{"fontStyle": "italic", "color": "#4a6260"}}>{shown["display"]}</span>
+                <span style={{"color": "#4a6260", "fontSize": "14px"}}>
+                    {"Guard is checking this message…" if shown["status"] == "analysing" else "The check could not finish. It will be retried."}
+                </span>
+            </div>
         } else {
-            <VerdictPanel verdict={shown} lang={lang}/>
+            <VerdictPanel verdict={shown} lang={lang} quote={shown["display"]} sender={shown["sender_display"]}/>
         }}
         <LostMoneyButton messageId={str(messageId)}/>
+        <p style={{"margin": "6px 0 0", "fontSize": "12px", "color": "#6f817d", "textAlign": "center"}}>
+            Decision aid, not legal advice.
+        </p>
     </section>;
 }

@@ -12,23 +12,51 @@ import from "@jac/runtime" {
 import from ..services.api {
     callWalker
 }
+import from ..components.Icon {
+    Icon
+}
+import from ..components.theme {
+    CARD,
+    LABEL,
+    TITLE,
+    BACK,
+    BUTTON,
+    PRIMARY,
+    QUIET,
+    INPUT,
+    ALERT,
+    MUTED
+}
 import from ..services.token {
     getToken,
     saveToken
 }
 
 glob STATUS_WORDS: dict[str, str] = {
-    "awaiting_approval": "Awaiting your approval",
-    "approved": "Approved",
+    "awaiting_approval": "Waiting for your approval",
+    "approved": "Approved, ready to copy",
     "discarded": "Discarded"
 },
-     BUTTON: dict[str, str] = {
-         "minHeight": "48px",
-         "flex": "1",
-         "borderRadius": "8px",
-         "fontSize": "0.95rem",
-         "fontWeight": "600"
+     STEPS: list[str] = ["Started", "Facts", "Draft", "Approve", "You send"],
+     TEXTAREA: dict[str, str] = {
+         "display": "block",
+         "width": "100%",
+         "boxSizing": "border-box",
+         "fontSize": "15px",
+         "lineHeight": "1.5",
+         "padding": "12px",
+         "border": "none",
+         "borderRadius": "14px",
+         "backgroundColor": "#fbf6ec",
+         "boxShadow": "inset 0 0 0 1px #eadfc8",
+         "color": "#173232"
      };
+
+
+"""Index of the step the case is on: Approve while pending, You send once approved."""
+def currentStep(status: str) -> int {
+    return 4 if status == "approved" else 3;
+}
 
 
 def:pub CaseScreen(lang: str) -> JsxElement {
@@ -116,124 +144,177 @@ def:pub CaseScreen(lang: str) -> JsxElement {
 
     if error and not data {
         return <section>
-            <Link to="/cases" style={{"display": "inline-flex", "minHeight": "44px", "alignItems": "center", "color": "#1a3fb0", "textDecoration": "none"}}>← Cases</Link>
-            <p role="alert" style={{"color": "#a61b1b"}}>{error}</p>
+            <Link to="/cases" style={BACK}><Icon name="back"/>Cases</Link>
+            <p role="alert" style={ALERT}>{error}</p>
         </section>;
     }
     if not data {
-        return <p style={{"color": "#888"}}>Loading…</p>;
+        return <p style={MUTED}>Loading…</p>;
     }
     view = data as dict[str, any];
     isPending = view["status"] == "awaiting_approval";
     timeline = view["timeline"] as list[dict[str, any]];
     facts = view["facts"] as list[dict[str, any]];
     available = view["available_recipients"] as list[str];
+    step = currentStep(str(view["status"]));
 
-    return <section>
-        <Link to="/cases" style={{"display": "inline-flex", "minHeight": "44px", "alignItems": "center", "color": "#1a3fb0", "textDecoration": "none"}}>← Cases</Link>
-        <h2 style={{"fontSize": "1.05rem", "margin": "0 0 0.2rem"}}>{STATUS_WORDS[view["status"]] or view["status"]}</h2>
-        <p style={{"fontSize": "0.8rem", "color": "#666", "margin": "0 0 0.8rem"}}>
-            Pesa Shield never sends this report. Decision aid, not legal advice.
-            {" "}{"Draft written from a template." if view["drafted_by"] == "template" else ""}
-        </p>
-
-        <h3 style={{"fontSize": "0.95rem", "margin": "0.6rem 0 0.3rem"}}>What happened</h3>
-        <ol style={{"margin": "0", "paddingLeft": "1.2rem", "fontSize": "0.85rem"}}>
-            {for (i, t) in enumerate(timeline) {
-                <li key={str(i)} style={{"marginBottom": "0.35rem", "overflowWrap": "anywhere"}}>
-                    <span style={{"color": "#666"}}>{t["at"]}</span>{" "}{t["summary"]}
-                </li>
-            }}
-        </ol>
-
-        <h3 style={{"fontSize": "0.95rem", "margin": "0.8rem 0 0.3rem"}}>Facts (as in the messages, masked)</h3>
-        <ul style={{"margin": "0", "paddingLeft": "1.2rem", "fontSize": "0.85rem"}}>
-            {for (i, f) in enumerate(facts) {
-                <li key={str(i)}>{f["kind"]}: <strong>{f["value"]}</strong></li>
-            }}
-        </ul>
-
-        <h3 style={{"fontSize": "0.95rem", "margin": "0.8rem 0 0.3rem"}}>Send to (you send it)</h3>
-        {for label in available {
-            <label
-                key={label}
-                style={{"display": "flex", "gap": "0.5rem", "alignItems": "center", "minHeight": "44px", "fontSize": "0.85rem"}}
-            >
-                <input
-                    type="checkbox"
-                    checked={label in chosen}
-                    disabled={not isPending}
-                    onChange={lambda (e: ChangeEvent) { toggleRecipient(label); }}
-                    style={{"width": "22px", "height": "22px"}}
-                />
-                {label}
-            </label>
-        }}
-        <p style={{"fontSize": "0.75rem", "color": "#7a4f00", "margin": "0.2rem 0 0"}}>
-            Reporting channels are placeholder labels: snapshot, verify before use.
-        </p>
-
-        <h3 style={{"fontSize": "0.95rem", "margin": "0.8rem 0 0.3rem"}}>
-            {"Ripoti (Kiswahili)" if lang == "sw" else "Report (English)"}
-        </h3>
-        {if isPending {
-            <textarea
-                value={draftSw if lang == "sw" else draftEn}
-                onChange={lambda (e: ChangeEvent) {
-                    if lang == "sw" { draftSw = e.target.value; } else { draftEn = e.target.value; }
+    return <section style={{"display": "flex", "flexDirection": "column", "gap": "14px"}}>
+        <Link to="/cases" style={BACK}><Icon name="back"/>Cases</Link>
+        <div style={{"display": "flex", "flexDirection": "column", "gap": "8px"}}>
+            <span
+                style={{
+                    "alignSelf": "flex-start",
+                    "display": "flex",
+                    "alignItems": "center",
+                    "gap": "6px",
+                    "fontWeight": "700",
+                    "fontSize": "13px",
+                    "borderRadius": "999px",
+                    "padding": "6px 12px",
+                    "backgroundColor": "#fbecd0" if isPending else ("#dff0e5" if view["status"] == "approved" else "#ece6d8"),
+                    "color": "#8a5a0b" if isPending else ("#22694a" if view["status"] == "approved" else "#4a6260")
                 }}
-                rows={12}
-                lang={lang}
-                style={{"width": "100%", "boxSizing": "border-box", "fontSize": "16px", "padding": "0.6rem", "border": "1px solid #bbb", "borderRadius": "8px"}}
-            />
-        } else {
-            <textarea
-                readOnly={True}
-                value={(view["final_text_sw"] if lang == "sw" else view["final_text_en"]) or "(discarded)"}
-                rows={14}
-                lang={lang}
-                style={{"width": "100%", "boxSizing": "border-box", "fontSize": "15px", "padding": "0.6rem", "border": "1px solid #bbb", "borderRadius": "8px", "backgroundColor": "#f8f9fa"}}
-            />
-        }}
+            >
+                <Icon name={"diamond" if isPending else ("tick" if view["status"] == "approved" else "stop")} size={12}/>
+                {STATUS_WORDS[view["status"]] or view["status"]}
+            </span>
+            <h2 style={{**TITLE, "fontSize": "24px", "margin": "0"}}>Recovery case</h2>
+            {if view["status"] != "discarded" {
+                <div aria-label={"Step " + str(step + 1) + " of 5: " + STEPS[step]} style={{"display": "grid", "gridTemplateColumns": "repeat(5, 1fr)", "gap": "4px"}}>
+                    {for (i, label) in enumerate(STEPS) {
+                        <div key={label} style={{"display": "flex", "flexDirection": "column", "gap": "6px", "fontSize": "11px", "textAlign": "center", "color": "#173232" if i == step else "#6f817d", "fontWeight": "700" if i == step else "400"}}>
+                            <span style={{"height": "6px", "borderRadius": "999px", "backgroundColor": "#e8a33d" if i == step else ("#0f3d3e" if i < step else "#eadfc8")}}/>
+                            {label}
+                        </div>
+                    }}
+                </div>
+            }}
+            <p style={{"fontSize": "13px", "color": "#6f817d", "margin": "0"}}>
+                Pesa Shield never sends this report. Decision aid, not legal advice.
+                {" "}{"Draft written from a template." if view["drafted_by"] == "template" else ""}
+            </p>
+        </div>
+
+        <div style={CARD}>
+            <h3 style={LABEL}>What happened</h3>
+            <ol style={{"margin": "0", "padding": "0", "listStyle": "none", "display": "flex", "flexDirection": "column", "gap": "10px"}}>
+                {for (i, t) in enumerate(timeline) {
+                    <li key={str(i)} style={{"display": "flex", "gap": "10px", "fontSize": "14px", "overflowWrap": "anywhere"}}>
+                        <span style={{"width": "10px", "height": "10px", "borderRadius": "50%", "backgroundColor": "#0f3d3e", "marginTop": "5px", "flex": "none"}}/>
+                        <span style={{"minWidth": "0"}}>
+                            <span style={{"display": "block", "color": "#6f817d", "fontSize": "12px"}}>{t["at"]}</span>
+                            {t["summary"]}
+                        </span>
+                    </li>
+                }}
+            </ol>
+        </div>
+
+        <div style={CARD}>
+            <h3 style={LABEL}>Facts (as in the messages, masked)</h3>
+            <ul style={{"margin": "0", "padding": "0", "listStyle": "none", "display": "flex", "flexDirection": "column", "gap": "6px", "fontSize": "14px"}}>
+                {for (i, f) in enumerate(facts) {
+                    <li key={str(i)} style={{"display": "flex", "justifyContent": "space-between", "gap": "12px"}}>
+                        <span style={{"color": "#6f817d"}}>{f["kind"]}</span>
+                        <strong style={{"overflowWrap": "anywhere", "textAlign": "right"}}>{f["value"]}</strong>
+                    </li>
+                }}
+            </ul>
+        </div>
+
+        <div style={CARD}>
+            <h3 style={LABEL}>Send to (you send it)</h3>
+            <div style={{"display": "flex", "flexDirection": "column", "gap": "8px"}}>
+                {for label in available {
+                    <label
+                        key={label}
+                        style={{
+                            "display": "flex",
+                            "gap": "10px",
+                            "alignItems": "center",
+                            "minHeight": "44px",
+                            "padding": "6px 12px",
+                            "borderRadius": "14px",
+                            "fontSize": "14px",
+                            "backgroundColor": "#e7f0ec" if label in chosen else "#fbf6ec",
+                            "color": "#0f3d3e" if label in chosen else "#4a6260"
+                        }}
+                    >
+                        <input
+                            type="checkbox"
+                            checked={label in chosen}
+                            disabled={not isPending}
+                            onChange={lambda (e: ChangeEvent) { toggleRecipient(label); }}
+                            style={{"width": "20px", "height": "20px", "accentColor": "#0f3d3e", "flex": "none"}}
+                        />
+                        {label}
+                    </label>
+                }}
+            </div>
+            <p style={{"fontSize": "12px", "color": "#8a5a0b", "margin": "10px 0 0"}}>
+                Reporting channels are placeholder labels: snapshot, verify before use.
+            </p>
+        </div>
+
+        <div style={CARD}>
+            <h3 style={LABEL}>{"Ripoti (Kiswahili)" if lang == "sw" else "Report (English)"}</h3>
+            {if isPending {
+                <textarea
+                    value={draftSw if lang == "sw" else draftEn}
+                    onChange={lambda (e: ChangeEvent) {
+                        if lang == "sw" { draftSw = e.target.value; } else { draftEn = e.target.value; }
+                    }}
+                    rows={12}
+                    lang={lang}
+                    style={{**TEXTAREA, "fontSize": "16px"}}
+                />
+            } else {
+                <textarea
+                    readOnly={True}
+                    value={(view["final_text_sw"] if lang == "sw" else view["final_text_en"]) or "(discarded)"}
+                    rows={14}
+                    lang={lang}
+                    style={TEXTAREA}
+                />
+            }}
+        </div>
 
         {if isPending {
-            <div>
-                <label style={{"display": "block", "fontWeight": "600", "margin": "0.6rem 0 0.3rem"}}>
+            <div style={{"display": "flex", "flexDirection": "column", "gap": "10px"}}>
+                <label style={{"display": "flex", "flexDirection": "column", "gap": "6px", "fontWeight": "700", "fontSize": "13px"}}>
                     Access code
                     <input
                         type="password"
                         value={token}
                         autoComplete="off"
                         onChange={lambda (e: ChangeEvent) { token = e.target.value; }}
-                        style={{"display": "block", "width": "100%", "boxSizing": "border-box", "minHeight": "44px", "fontSize": "16px", "marginTop": "0.3rem", "padding": "0 0.6rem", "border": "1px solid #bbb", "borderRadius": "8px"}}
+                        style={INPUT}
                     />
                 </label>
-                <div style={{"display": "flex", "gap": "0.5rem", "marginTop": "0.6rem"}}>
-                    <button type="button" disabled={busy} onClick={lambda { approve(); }}
-                        style={{**BUTTON, "border": "none", "backgroundColor": "#1a3fb0", "color": "#fff"}}>
-                        Approve
-                    </button>
-                    <button type="button" disabled={busy} onClick={lambda { saveEdits(); }}
-                        style={{**BUTTON, "border": "1px solid #1a3fb0", "backgroundColor": "#fff", "color": "#1a3fb0"}}>
+                <button type="button" disabled={busy} onClick={lambda { approve(); }} style={{**BUTTON, **PRIMARY}}>
+                    <Icon name="tick" color="#fbf6ec"/>
+                    Approve report
+                </button>
+                <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "8px"}}>
+                    <button type="button" disabled={busy} onClick={lambda { saveEdits(); }} style={{**BUTTON, **QUIET}}>
                         Save edits
                     </button>
-                    <button type="button" disabled={busy} onClick={lambda { discard(); }}
-                        style={{**BUTTON, "border": "1px solid #a61b1b", "backgroundColor": "#fff", "color": "#a61b1b"}}>
+                    <button type="button" disabled={busy} onClick={lambda { discard(); }} style={{**BUTTON, **QUIET, "color": "#b23a24"}}>
                         Discard
                     </button>
                 </div>
             </div>
         } elif view["status"] == "approved" {
-            <button type="button" onClick={lambda { copyText(); }}
-                style={{**BUTTON, "width": "100%", "marginTop": "0.6rem", "border": "none", "backgroundColor": "#1a3fb0", "color": "#fff"}}>
+            <button type="button" onClick={lambda { copyText(); }} style={{**BUTTON, **PRIMARY}}>
+                <Icon name="copy" color="#fbf6ec"/>
                 Copy report
             </button>
         }}
         {if notice {
-            <p role="status" style={{"color": "#1e6b3a", "marginTop": "0.6rem"}}>{notice}</p>
+            <p role="status" style={{"color": "#22694a", "margin": "0", "fontWeight": "500"}}>{notice}</p>
         }}
         {if error {
-            <p role="alert" style={{"color": "#a61b1b", "marginTop": "0.6rem"}}>{error}</p>
+            <p role="alert" style={{**ALERT, "margin": "0"}}>{error}</p>
         }}
     </section>;
 }

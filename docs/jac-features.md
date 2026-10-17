@@ -7,10 +7,10 @@ Measured over the repository's files, excluding docs (`.md`), generated eval out
 
 | Kind | Files | Non-blank lines |
 |---|---|---|
-| `.jac` (server, client, tests, CLI) | 28 | 3,651 |
+| `.jac` (server, client, tests, CLI) | 30 | 4,293 |
 | `.json` (dataset, config placeholders) | 4 | 126 |
-| `jac.toml`, `.env.example`, `.gitignore`, `.css` | 4 | 73 |
-| **Jac share** | | **94.8%** (target ≥ 80%) |
+| `jac.toml`, `.env.example`, `.gitignore`, `.css` | 4 | 86 |
+| **Jac share** | | **95.3%** (target ≥ 80%) |
 
 There is no Python, JavaScript or TypeScript source; the browser app is Jac compiled to
 React by the client capability built into `jac`.

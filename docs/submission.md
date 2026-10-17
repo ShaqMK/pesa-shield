@@ -6,7 +6,7 @@
 
 ---
 
-> **TL;DR** — Forward an SMS and Pesa Shield’s Jac agent tells you, in plain English and natural Swahili, whether it is a scam *before* you pay — choosing its own checks against a shared scam graph. Numbers that ask people to pay the same till are linked into **rings**. If money is lost, it drafts a report that waits for **your** approval: nothing is ever sent for you. 94.8% Jac, live on Jac Hammer.
+> **TL;DR** — Forward an SMS and Pesa Shield’s Jac agent tells you, in plain English and natural Swahili, whether it is a scam *before* you pay — choosing its own checks against a shared scam graph. Numbers that ask people to pay the same till are linked into **rings**. If money is lost, it drafts a report that waits for **your** approval: nothing is ever sent for you. 95.3% Jac, live on Jac Hammer.
 
 ## Inspiration
 
@@ -24,7 +24,7 @@ We wanted a guard that sits between the SMS and the payment, explains itself in 
 
 ## How we built it — Jac / Jaseci
 
-Everything is written in **Jac** — 94.8% of non-documentation lines, with no Python, JavaScript or TypeScript source — on the native `jac` 0.37.25 runtime, deployed on **Jac Hammer**.
+Everything is written in **Jac** — 95.3% of non-documentation lines, with no Python, JavaScript or TypeScript source — on the native `jac` 0.37.25 runtime, deployed on **Jac Hammer**.
 
 ```
  SMS forwarder ──POST──▶ IngestMessage (walker:pub) ──redact──▶ graph: Sender ─▶ Message
@@ -44,7 +44,7 @@ Everything is written in **Jac** — 94.8% of non-documentation lines, with no P
 - **byLLM, typed and with tools.** Guard is `def judge(message, sender_kind) -> Judgement by llm(tools=[...])`. The model returns a **typed** object (enums for risk and scam type), described entirely with `sem` strings, and **decides per message which tools to call**. On the live deployment, a loan message naming a lender made it call `check_lender`; a family message needed no tools. Recovery’s report narrative is a second typed `by llm` call.
 - **`flow`** answers the SMS webhook instantly (“analysing”) and runs Guard in the background.
 - **Jac client** renders the mobile-first UI — 360px, 44px tap targets, a bottom tab bar and a hand-written SVG ring graph — from Jac components.
-- **`jac check` and `jac test`.** All 26 modules type-check, and the integration checks run through the walkers: wrong credentials are rejected at every tier, a three-sender ring forms and escalates, and Recovery stops at awaiting approval until approved.
+- **`jac check` and `jac test`.** All 28 modules type-check, and the integration checks run through the walkers: wrong credentials are rejected at every tier, a three-sender ring forms and escalates, and Recovery stops at awaiting approval until approved.
 
 ## Privacy by construction
 
@@ -96,7 +96,7 @@ On-device SMS filtering, verified lender and reporting-channel data with telcos 
 
 | Requirement | Where |
 |---|---|
-| GitHub repo, ≥80% Jac | [github.com/ShaqMK/pesa-shield](https://github.com/ShaqMK/pesa-shield) — 94.8% Jac (measured in `docs/jac-features.md`) |
+| GitHub repo, ≥80% Jac | [github.com/ShaqMK/pesa-shield](https://github.com/ShaqMK/pesa-shield) — 95.3% Jac (measured in `docs/jac-features.md`) |
 | Demo video | Embedded at the top of this page |
 | Pitch deck | Attached to the submission |
 | How we used Jac / Jaseci | *How we built it* above, and `docs/jac-features.md` in the repo |

@@ -8,6 +8,17 @@ import from react {
 import from ..components.MessageCard {
     MessageCard
 }
+import from ..components.Icon {
+    Icon
+}
+import from ..components.theme {
+    CARD,
+    LABEL,
+    TITLE,
+    LEDE,
+    ALERT,
+    MUTED
+}
 import from ..services.api {
     callWalker
 }
@@ -81,10 +92,10 @@ def:pub GraphScreen() -> JsxElement {
     }, []);
 
     if error {
-        return <p role="alert" style={{"color": "#a61b1b"}}>{error}</p>;
+        return <p role="alert" style={ALERT}>{error}</p>;
     }
     if not view {
-        return <p style={{"color": "#888"}}>Loading…</p>;
+        return <p style={MUTED}>Loading…</p>;
     }
     data = view as dict[str, any];
     rings = data["rings"] as list[dict[str, any]];
@@ -94,28 +105,38 @@ def:pub GraphScreen() -> JsxElement {
     targetCount = len([n for n in nodes if n["kind"] == "target"]);
     height = max(targetCount, 1) * CLUSTER_HEIGHT;
 
-    return <section>
-        <h2 style={{"fontSize": "1.05rem", "margin": "0 0 0.3rem"}}>Scam rings</h2>
-        <p style={{"color": "#666", "fontSize": "0.82rem", "margin": "0 0 0.6rem"}}>
+    return <section style={{"display": "flex", "flexDirection": "column", "gap": "14px"}}>
+        <div>
+        <h2 style={TITLE}>Scam rings</h2>
+        <p style={{**LEDE, "margin": "0"}}>
             A ring is three or more numbers asking people to pay the same till,
             paybill, number or link. Only medium and high risk messages count.
         </p>
+        </div>
         {if len(rings) == 0 {
-            <p style={{"color": "#888", "fontSize": "0.9rem"}}>No rings yet.</p>
+            <p style={MUTED}>No rings yet.</p>
         }}
         {for r in rings {
-            <div
-                key={r["ring_id"]}
-                style={{
-                    "padding": "0.5rem 0.7rem",
-                    "marginBottom": "0.4rem",
-                    "borderRadius": "8px",
-                    "backgroundColor": "#fde2e1",
-                    "color": "#7a1414",
-                    "fontSize": "0.85rem"
-                }}
-            >
-                <strong>Ring</strong> on {r["target"]}: {r["senders"]} senders, {r["reports"]} reports
+            <div key={r["ring_id"]} style={{**CARD, "display": "flex", "flexDirection": "column", "gap": "12px"}}>
+                <div style={{"display": "flex", "justifyContent": "space-between", "alignItems": "center", "gap": "8px"}}>
+                    <strong style={{"fontFamily": "'Fraunces', Georgia, serif", "fontSize": "19px", "color": "#0f3d3e"}}>
+                        Ring around {r["target"]}
+                    </strong>
+                    <span style={{"display": "inline-flex", "alignItems": "center", "gap": "6px", "height": "26px", "padding": "0 10px 0 8px", "borderRadius": "999px", "fontSize": "12px", "fontWeight": "700", "backgroundColor": "#fbe3dc", "color": "#b23a24"}}>
+                        <Icon name="triangle" size={12} color="#b23a24"/>
+                        Ring
+                    </span>
+                </div>
+                <div style={{"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "8px"}}>
+                    <div style={{"backgroundColor": "#fbf6ec", "borderRadius": "14px", "padding": "8px 10px"}}>
+                        <strong style={{"display": "block", "fontSize": "20px", "color": "#0f3d3e"}}>{str(r["senders"])}</strong>
+                        <span style={{"fontSize": "12px", "color": "#6f817d"}}>numbers</span>
+                    </div>
+                    <div style={{"backgroundColor": "#fbf6ec", "borderRadius": "14px", "padding": "8px 10px"}}>
+                        <strong style={{"display": "block", "fontSize": "20px", "color": "#0f3d3e"}}>{str(r["reports"])}</strong>
+                        <span style={{"fontSize": "12px", "color": "#6f817d"}}>reports</span>
+                    </div>
+                </div>
             </div>
         }}
         {if len(nodes) > 0 {
@@ -124,7 +145,7 @@ def:pub GraphScreen() -> JsxElement {
                 width="100%"
                 role="img"
                 aria-label="Graph of senders linked to pay targets"
-                style={{"display": "block", "marginTop": "0.6rem"}}
+                style={{"display": "block", "backgroundColor": "#ffffff", "borderRadius": "20px", "boxShadow": "0 1px 0 #eadfc8"}}
             >
                 {for (i, e) in enumerate(edges) {
                     <line
@@ -133,8 +154,9 @@ def:pub GraphScreen() -> JsxElement {
                         y1={pos[e["from"]][1]}
                         x2={pos[e["to"]][0]}
                         y2={pos[e["to"]][1]}
-                        stroke="#9aa3b5"
-                        strokeWidth={1 + e["count"]}
+                        stroke="#e8a33d"
+                        strokeDasharray="5 5"
+                        strokeWidth={1.5 + e["count"]}
                     />
                 }}
                 {for n in nodes {
@@ -150,16 +172,17 @@ def:pub GraphScreen() -> JsxElement {
                             cx={pos[n["id"]][0]}
                             cy={pos[n["id"]][1]}
                             r={32 if n["kind"] == "target" else 26}
-                            fill={("#f4a3a0" if n["ring_id"] else "#ffd9a8") if n["kind"] == "target" else "#dfe6ff"}
-                            stroke={"#1a3fb0" if selected and selected["id"] == n["id"] else "#555"}
-                            strokeWidth={3 if selected and selected["id"] == n["id"] else 1}
+                            fill={("#b23a24" if n["ring_id"] else "#0f3d3e") if n["kind"] == "target" else "#fbe3dc"}
+                            stroke={"#e8a33d" if selected and selected["id"] == n["id"] else ("#fbf6ec" if n["kind"] == "target" else "#b23a24")}
+                            strokeWidth={4 if selected and selected["id"] == n["id"] else 2}
                         />
                         <text
                             x={pos[n["id"]][0]}
                             y={textY(pos, n, False)}
                             textAnchor="middle"
                             fontSize="13"
-                            fontWeight="600"
+                            fontWeight="700"
+                            fill={"#fbf6ec" if n["kind"] == "target" else "#b23a24"}
                         >
                             {str(n["count"])}
                         </text>
@@ -168,7 +191,8 @@ def:pub GraphScreen() -> JsxElement {
                             y={textY(pos, n, True)}
                             textAnchor="middle"
                             fontSize="11"
-                            fill="#333"
+                            fontWeight="500"
+                            fill="#173232"
                         >
                             {("RING · " if n["ring_id"] else "") + str(n["label"])}
                         </text>
@@ -177,8 +201,8 @@ def:pub GraphScreen() -> JsxElement {
             </svg>
         }}
         {if selected {
-            <div style={{"marginTop": "0.8rem"}}>
-                <h3 style={{"fontSize": "0.95rem", "margin": "0 0 0.4rem"}}>
+            <div style={{"display": "flex", "flexDirection": "column", "gap": "10px"}}>
+                <h3 style={{**LABEL, "margin": "0"}}>
                     Messages for {selected["label"]}
                 </h3>
                 {for m in messages {

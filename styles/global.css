@@ -1,9 +1,18 @@
 /* Pesa Shield is designed light-only for now: pin the page so a dark OS
-   theme can't put dark text on a dark page. No horizontal scroll. */
+   theme can't put dark text on a dark page. No horizontal scroll.
+   Component styles live in Jac (components/theme.jac); only page-level
+   rules that inline styles cannot express belong here. */
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap");
+
 html, body {
   margin: 0;
-  background: #ffffff;
-  color: #1a1a2e;
+  background: #fbf6ec;
+  color: #173232;
   color-scheme: light;
   overflow-x: hidden;
+  font-family: 'DM Sans', 'Segoe UI', system-ui, sans-serif;
 }
+button, input, textarea { font-family: inherit; }
+:focus-visible { outline: 3px solid #e8a33d; outline-offset: 2px; }
+@keyframes ps-pulse { 50% { opacity: 0.3; } }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; } }

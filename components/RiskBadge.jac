@@ -1,30 +1,48 @@
-"""Risk as a word plus colour - never colour alone (GLOSSARY: Risk)."""
+"""Risk as a word plus a shape plus colour - never colour alone (GLOSSARY: Risk)."""
 
-glob RISK_STYLE: dict[str, dict[str, str]] = {
-    "high": {"label": "High risk", "bg": "#fde2e1", "fg": "#a61b1b"},
-    "medium": {"label": "Medium risk", "bg": "#fff1d6", "fg": "#7a4f00"},
-    "low": {"label": "Low risk", "bg": "#e3f5e8", "fg": "#1e6b3a"}
-};
+import from .theme {
+    RISK
+}
+import from .Icon {
+    Icon
+}
 
 
 def:pub RiskBadge(risk: str, status: str = "analysed") -> JsxElement {
-    style = RISK_STYLE[risk] if status == "analysed" and risk in RISK_STYLE else {
-        "label": "check failed" if status == "failed" else (status or "unknown"),
-        "bg": "#e0e0e0",
-        "fg": "#444"
+    pill = {
+        "display": "inline-flex",
+        "alignItems": "center",
+        "gap": "6px",
+        "height": "26px",
+        "padding": "0 10px 0 8px",
+        "borderRadius": "999px",
+        "fontSize": "12px",
+        "fontWeight": "700",
+        "whiteSpace": "nowrap",
+        "boxSizing": "border-box"
     };
-    return <span
-        style={{
-            "display": "inline-block",
-            "fontSize": "0.75rem",
-            "fontWeight": "600",
-            "padding": "0.2rem 0.55rem",
-            "borderRadius": "999px",
-            "whiteSpace": "nowrap",
-            "backgroundColor": style["bg"],
-            "color": style["fg"]
-        }}
-    >
-        {style["label"]}
+    if status == "analysed" and risk in RISK {
+        style = RISK[risk];
+        return <span style={{**pill, "backgroundColor": style["bg"], "color": style["fg"]}}>
+            <Icon name={style["icon"]} size={12} color={style["fg"]}/>
+            {style["label"]}
+        </span>;
+    }
+    if status == "analysing" {
+        return <span style={{**pill, "backgroundColor": "#ece6d8", "color": "#4a6260"}}>
+            <span
+                style={{
+                    "width": "8px",
+                    "height": "8px",
+                    "borderRadius": "50%",
+                    "backgroundColor": "#6f817d",
+                    "animation": "ps-pulse 1.4s ease-in-out infinite"
+                }}
+            />
+            Checking…
+        </span>;
+    }
+    return <span style={{**pill, "backgroundColor": "#ece6d8", "color": "#4a6260"}}>
+        {"Check failed" if status == "failed" else (status or "unknown")}
     </span>;
 }
