@@ -51,8 +51,13 @@ obj Redacted {
 
 obj SenderIdentity {
     has key: str,  # HMAC sender key
-        display: str;
+        display: str,
+        kind: str;  # SENDER_PHONE or SENDER_ID - safe to show the LLM
 }
+
+glob SENDER_PHONE: str = "a phone number",
+     SENDER_ID: str = "a registered sender ID (e.g. a bank or telco name)",
+     SENDER_UNKNOWN: str = "unknown";
 
 
 """HMAC key over a canonical identifier with the server-side secret."""
@@ -114,20 +119,38 @@ def _mask(kind: str, raw: str) -> str {
 }
 
 
+def _is_phone_sender(stripped: str) -> bool {
+    return bool(
+        _PHONE_RE.fullmatch(stripped)
+        or (len(_digits(stripped)) >= 7 and re.fullmatch(r"[\d\s+()\-]+", stripped))
+    );
+}
+
+
+"""What kind of sender this is, without revealing who: for the LLM."""
+def sender_kind(raw: str) -> str {
+    stripped = raw.strip();
+    if not stripped {
+        return SENDER_UNKNOWN;
+    }
+    return SENDER_PHONE if _is_phone_sender(stripped) else SENDER_ID;
+}
+
+
 """Identify the message sender: a phone number or an alphanumeric sender ID."""
 def identify_sender(raw: str) -> SenderIdentity {
     stripped = raw.strip();
-    if _PHONE_RE.fullmatch(stripped) or (
-        len(_digits(stripped)) >= 7 and re.fullmatch(r"[\d\s+()\-]+", stripped)
-    ) {
+    if sender_kind(stripped) == SENDER_PHONE {
         return SenderIdentity(
             key=hmac_key(_canonical_phone(stripped)),
-            display=_mask("PHONE", stripped)
+            display=_mask("PHONE", stripped),
+            kind=SENDER_PHONE
         );
     }
     return SenderIdentity(
         key=hmac_key("sender:" + stripped.upper()),
-        display=stripped[:1] + "***"
+        display=stripped[:1] + "***",
+        kind=SENDER_ID
     );
 }
 

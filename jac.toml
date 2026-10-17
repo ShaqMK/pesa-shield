@@ -39,4 +39,5 @@ typescript = "^5.3.3"
 [dev-dependencies]
 
 [scripts]
-test = "jac test -f endpoints*"
+# "e*" = endpoints (integration checks) + evals (the regression check).
+test = "jac test -f e*"

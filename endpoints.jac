@@ -145,6 +145,7 @@ walker:pub IngestMessage {
             entities=redacted.entities,
             sender_key=identity.key,
             sender_display=identity.display,
+            sender_kind=identity.kind,
             status="analysing",
             created_at=str(now()),
             template_hash=template_hash(redacted.llm_text),

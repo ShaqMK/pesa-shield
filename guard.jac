@@ -33,6 +33,7 @@ import from graph {
 }
 import from redaction {
     redact,
+    sender_kind,
     template_hash
 }
 import from labelled {
@@ -254,7 +255,7 @@ sem similar_messages = """Find earlier messages with the same wording template a
 how they were judged.""";
 
 
-def judge(message: str) -> Judgement by llm(
+def judge(message: str, sender_kind: str) -> Judgement by llm(
     tools=[extract_entities, lookup_graph, check_lender, similar_messages],
     temperature=0.1,
     max_react_iterations=6
@@ -268,6 +269,10 @@ fee before loan, fake prize, fake payment confirmation, impersonation, fake job 
 PIN/OTP or SIM-swap requests. A genuine confirmation or notice that asks for nothing risky is
 low risk (legit_transaction); do not cry wolf.""";
 sem judge.message = "The SMS text with identifiers replaced by tokens.";
+sem judge.sender_kind = """What kind of sender sent it: a phone number, a registered sender ID, or
+unknown. Real mobile-money and bank confirmations come from registered sender IDs, and a
+'confirmation' from a phone number is a strong sign of a fake - but sender IDs can be spoofed,
+so the content decides.""";
 
 
 def _judgement_from(d: dict) -> Judgement {
@@ -298,7 +303,8 @@ def run_guard(
     entities: list[dict[str, str]],
     template: str,
     exclude_id: str,
-    labelled: str
+    labelled: str,
+    sender_kind: str
 ) -> GuardResult {
     global _run;
     if labelled and labelled in verdict_cache() {
@@ -312,7 +318,7 @@ def run_guard(
             exclude_id=exclude_id
         );
         try {
-            live = judge(llm_text);
+            live = judge(llm_text, sender_kind);
             used = list(_run.tools_used);
         } finally {
             _run = None;
@@ -367,7 +373,12 @@ def apply_verdict(msg: Message, result: GuardResult) {
 def guard_message(msg: Message) {
     try {
         result = run_guard(
-            msg.llm_text, msg.entities, msg.template_hash, jid(msg), msg.cache_key
+            msg.llm_text,
+            msg.entities,
+            msg.template_hash,
+            jid(msg),
+            msg.cache_key,
+            msg.sender_kind
         );
         apply_verdict(msg, result);
     } except Exception as e {
@@ -429,6 +440,7 @@ walker:pub GuardPending {
 walker:pub Check {
     has token: str = "",
         text: str = "",
+        sender: str = "",  # optional: only its kind reaches Guard
         reports: list[dict[str, any]] = [];
 
     can run with Root entry {
@@ -441,7 +453,8 @@ walker:pub Check {
             redacted.entities,
             template_hash(redacted.llm_text),
             "",
-            labelled_key(self.text)
+            labelled_key(self.text),
+            sender_kind(self.sender)
         );
         verdict = result.judgement;
         report {

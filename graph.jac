@@ -24,6 +24,7 @@ node Message {
         sender_display: str,
         status: str,  # analysing -> analysed | failed
         created_at: str,
+        sender_kind: str = "unknown",  # phone number vs registered sender ID
         template_hash: str = "",
         cache_key: str = "",  # set only for labelled synthetic messages
         # Verdict, filled in by Guard.
