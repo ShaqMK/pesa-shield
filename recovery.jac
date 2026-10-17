@@ -269,7 +269,8 @@ walker:pub StartCase {
         reports: list[dict[str, any]] = [];
 
     can start with Root entry {
-        require_secret("PESA_CLIENT_TOKEN", self.token);
+        (given, self.token) = (self.token, "");  # never echoed back
+        require_secret("PESA_CLIENT_TOKEN", given);
         found = _lookup(self.message_id);
         if not isinstance(found, Message) {
             raise ValueError("invalid: message not found");
@@ -350,7 +351,8 @@ walker:pub EditCase {
         reports: list[dict[str, any]] = [];
 
     can edit with Root entry {
-        require_secret("PESA_CLIENT_TOKEN", self.token);
+        (given, self.token) = (self.token, "");  # never echoed back
+        require_secret("PESA_CLIENT_TOKEN", given);
         c = _load_case(self.case_id);
         _require_awaiting(c);
         if self.recipients is not None {
@@ -383,7 +385,8 @@ walker:pub ApproveCase {
         reports: list[dict[str, any]] = [];
 
     can approve with Root entry {
-        require_secret("PESA_CLIENT_TOKEN", self.token);
+        (given, self.token) = (self.token, "");  # never echoed back
+        require_secret("PESA_CLIENT_TOKEN", given);
         c = _load_case(self.case_id);
         _require_awaiting(c);
         if not c.recipients {
@@ -408,7 +411,8 @@ walker:pub DiscardCase {
         reports: list[dict[str, any]] = [];
 
     can discard with Root entry {
-        require_secret("PESA_CLIENT_TOKEN", self.token);
+        (given, self.token) = (self.token, "");  # never echoed back
+        require_secret("PESA_CLIENT_TOKEN", given);
         c = _load_case(self.case_id);
         _require_awaiting(c);
         c.status = DISCARDED;

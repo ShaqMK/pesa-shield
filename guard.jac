@@ -415,7 +415,8 @@ walker:pub GuardMessage {
         reports: list[dict[str, any]] = [];
 
     can run with Root entry {
-        require_secret("PESA_WEBHOOK_SECRET", self.secret);
+        (given, self.secret) = (self.secret, "");  # never echoed back
+        require_secret("PESA_WEBHOOK_SECRET", given);
         target: any = None;
         try {
             target = jobj(self.message_id);
@@ -443,7 +444,8 @@ walker:pub GuardPending {
         reports: list[dict[str, any]] = [];
 
     can run with Root entry {
-        require_secret("PESA_ADMIN_SECRET", self.secret);
+        (given, self.secret) = (self.secret, "");  # never echoed back
+        require_secret("PESA_ADMIN_SECRET", given);
         pending = [m for m in all_messages() if m.status in ["analysing", "failed"]];
         for m in pending[:self.limit] {
             guard_message(m);
@@ -462,17 +464,19 @@ walker:pub Check {
         reports: list[dict[str, any]] = [];
 
     can run with Root entry {
-        require_secret("PESA_CLIENT_TOKEN", self.token);
-        require_text(self.text);
+        (given, self.token) = (self.token, "");  # never echoed back
+        require_secret("PESA_CLIENT_TOKEN", given);
+        (raw_text, raw_sender, self.text, self.sender) = (self.text, self.sender, "", "");
+        require_text(raw_text);
         require_rate("check", "PESA_CHECK_RATE_MAX", 10);
-        redacted = redact(self.text);
+        redacted = redact(raw_text);
         result = run_guard(
             redacted.llm_text,
             redacted.entities,
             template_hash(redacted.llm_text),
             "",
-            labelled_key(self.text),
-            sender_kind(self.sender) if self.sender.strip() else sender_kind_choice(self.from_kind)
+            labelled_key(raw_text),
+            sender_kind(raw_sender) if raw_sender.strip() else sender_kind_choice(self.from_kind)
         );
         verdict = result.judgement;
         report {

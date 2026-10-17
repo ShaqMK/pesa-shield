@@ -112,13 +112,16 @@ walker:pub IngestMessage {
         reports: list[dict[str, str]] = [];
 
     can ingest with Root entry {
-        require_secret("PESA_WEBHOOK_SECRET", self.secret);
-        require_text(self.text);
-        if not self.sender.strip() {
+        (given, self.secret) = (self.secret, "");  # never echoed back
+        require_secret("PESA_WEBHOOK_SECRET", given);
+        # Raw identifiers stay in locals; the walker (echoed as `result`) keeps none.
+        (raw_text, raw_sender, self.text, self.sender) = (self.text, self.sender, "", "");
+        require_text(raw_text);
+        if not raw_sender.strip() {
             raise ValueError("invalid: sender is required");
         }
-        identity = identify_sender(self.sender);
-        redacted = redact(self.text);
+        identity = identify_sender(raw_sender);
+        redacted = redact(raw_text);
         existing = [root -->[?:Sender, key == identity.key]];
 
         # Dedupe before the rate limit so forwarder retries are never rejected.
@@ -153,7 +156,7 @@ walker:pub IngestMessage {
             status="analysing",
             created_at=str(now()),
             template_hash=template_hash(redacted.llm_text),
-            cache_key=labelled_key(self.text)
+            cache_key=labelled_key(raw_text)
         );
         sender ++> msg;
         message_id = jid(msg);
@@ -206,7 +209,8 @@ walker:pub Seed {
         reports: list[dict[str, int]] = [];
 
     can run with Root entry {
-        require_secret("PESA_ADMIN_SECRET", self.secret);
+        (given, self.secret) = (self.secret, "");  # never echoed back
+        require_secret("PESA_ADMIN_SECRET", given);
         created = seed_patterns();
         report {"created": created, "patterns": pattern_count()};
     }
@@ -221,7 +225,8 @@ walker:pub Reset {
         reports: list[dict[str, int]] = [];
 
     can run with Root entry {
-        require_secret("PESA_ADMIN_SECRET", self.secret);
+        (given, self.secret) = (self.secret, "");  # never echoed back
+        require_secret("PESA_ADMIN_SECRET", given);
         removed = 0;
         for s in [root -->[?:Sender]] {
             for m in [s -->[?:Message]] {
