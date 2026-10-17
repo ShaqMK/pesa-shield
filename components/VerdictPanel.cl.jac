@@ -47,12 +47,14 @@ def:pub VerdictPanel(verdict: dict, lang: str) -> JsxElement {
                 Risk raised: linked to a scam ring.
             </p>
         }}
-        <h3 style={{"fontSize": "0.95rem", "margin": "0.8rem 0 0.3rem"}}>Why</h3>
-        <ul style={{"margin": "0", "paddingLeft": "1.2rem"}}>
-            {for (i, r) in enumerate(reasons) {
-                <li key={str(i)} style={{"marginBottom": "0.25rem"}}>{r}</li>
-            }}
-        </ul>
+        {if len(reasons) > 0 {
+            <h3 style={{"fontSize": "0.95rem", "margin": "0.8rem 0 0.3rem"}}>Why</h3>
+            <ul style={{"margin": "0", "paddingLeft": "1.2rem"}}>
+                {for (i, r) in enumerate(reasons) {
+                    <li key={str(i)} style={{"marginBottom": "0.25rem"}}>{r}</li>
+                }}
+            </ul>
+        }}
         <div
             style={{
                 "marginTop": "0.8rem",

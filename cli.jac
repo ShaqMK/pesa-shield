@@ -5,10 +5,12 @@
     jac run cli.jac graph [--base-url URL]
     jac run cli.jac case start <message_id> | show <case_id> | approve <case_id> | discard <case_id> [--lang sw]
     jac run cli.jac case edit <case_id> "<new report text>" [--lang sw]
+    jac run cli.jac reset [--admin-secret S] [--base-url URL]
 
 Base URL: --base-url, else PESA_BASE_URL, else http://localhost:3000.
 Client token: --token, else PESA_CLIENT_TOKEN. Webhook secret (simulate):
---secret, else PESA_WEBHOOK_SECRET. The CLI and the web UI call the same
+--secret, else PESA_WEBHOOK_SECRET. Admin secret (reset): --admin-secret,
+else PESA_ADMIN_SECRET. The CLI and the web UI call the same
 backend; nothing here imports server code.
 """
 
@@ -31,7 +33,8 @@ glob USAGE: str = """usage:
   jac run cli.jac simulate [--delay SEC] [--limit N] [--secret S] [--base-url URL]
   jac run cli.jac graph [--base-url URL]
   jac run cli.jac case start <message_id> | show <case_id> | approve <case_id> | discard <case_id> [--lang sw]
-  jac run cli.jac case edit <case_id> "<new report text>" [--lang sw]""",
+  jac run cli.jac case edit <case_id> "<new report text>" [--lang sw]
+  jac run cli.jac reset [--admin-secret S] [--base-url URL]""",
      DATASET_PATH: str = os.path.join(
          os.path.dirname(os.path.abspath(__file__)), "data", "synthetic_messages.json"
      ),
@@ -48,6 +51,7 @@ obj CliArgs {
         base_url: str = "",
         token: str = "",
         secret: str = "",
+        admin_secret: str = "",
         delay: float = DEFAULT_DELAY_SEC,
         limit: int = 0;
 }
@@ -58,12 +62,13 @@ def parse_args(argv: list[str]) -> CliArgs {
         base_url=os.getenv("PESA_BASE_URL", "http://localhost:3000"),
         token=os.getenv("PESA_CLIENT_TOKEN", ""),
         secret=os.getenv("PESA_WEBHOOK_SECRET", ""),
+        admin_secret=os.getenv("PESA_ADMIN_SECRET", ""),
         delay=DEFAULT_DELAY_SEC
     );
     i = 0;
     while i < len(argv) {
         a = argv[i];
-        if a in ["--lang", "--base-url", "--token", "--secret", "--delay", "--limit"]
+        if a in ["--lang", "--base-url", "--token", "--secret", "--admin-secret", "--delay", "--limit"]
         and i + 1 < len(argv) {
             value = argv[i + 1];
             if a == "--lang" {
@@ -74,6 +79,8 @@ def parse_args(argv: list[str]) -> CliArgs {
                 args.token = value;
             } elif a == "--secret" {
                 args.secret = value;
+            } elif a == "--admin-secret" {
+                args.admin_secret = value;
             } elif a == "--delay" {
                 args.delay = float(value);
             } else {
@@ -116,9 +123,12 @@ def print_verdict(v: dict, lang: str) {
     risk = str(v["risk"]).upper();
     scam = str(v["scam_type"]).replace("_", " ");
     print(f"Risk: {risk}  ({scam}){'  [cached]' if v['cached'] else ''}");
-    print("Reasons:");
-    for r in v["reasons"] as list[str] {
-        print(f"  - {r}");
+    reasons = v["reasons"] as list[str];
+    if reasons {
+        print("Reasons:");
+        for r in reasons {
+            print(f"  - {r}");
+        }
     }
     print(f"Action: {v['action']}");
     print("");
@@ -254,6 +264,22 @@ def case_command(args: CliArgs) -> int {
 }
 
 
+"""One-command clean demo state: wipe messages, cases and rings, re-seed."""
+def reset(args: CliArgs) -> int {
+    try {
+        r = call_walker(args.base_url, "Reset", {"secret": args.admin_secret})[0] as dict;
+    } except URLError as e {
+        print(f"cannot reach {args.base_url}: {e.reason}");
+        return 2;
+    } except RuntimeError as e {
+        print(f"rejected: {e}");
+        return 1;
+    }
+    print(f"Reset: removed {r['removed_messages']} messages; {r['patterns']} Patterns seeded.");
+    return 0;
+}
+
+
 def run(argv: list[str]) -> int {
     args = parse_args(argv);
     if args.command == "simulate" {
@@ -264,6 +290,9 @@ def run(argv: list[str]) -> int {
     }
     if args.command == "case" {
         return case_command(args);
+    }
+    if args.command == "reset" {
+        return reset(args);
     }
     if args.command == "check" and args.positional {
         try {

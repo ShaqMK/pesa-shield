@@ -1,0 +1,499 @@
+{
+  "kind": "live_eval",
+  "run_at": "2026-10-17T10:30:04",
+  "model": "gpt-4o-mini via [plugins.byllm.model]",
+  "threshold": 0.85,
+  "n": 44,
+  "correct": 37,
+  "accuracy": 0.8409,
+  "scam_type_accuracy": 0.6363,
+  "misses": [
+    "l02",
+    "l03",
+    "l04",
+    "l05",
+    "l06",
+    "l07",
+    "l08"
+  ],
+  "results": [
+    {
+      "id": "s01",
+      "label": "scam",
+      "scam_type": "fee_before_loan",
+      "risk": "high",
+      "predicted_type": "fee_before_loan",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "s02",
+      "label": "scam",
+      "scam_type": "fee_before_loan",
+      "risk": "high",
+      "predicted_type": "fee_before_loan",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "s03",
+      "label": "scam",
+      "scam_type": "fee_before_loan",
+      "risk": "high",
+      "predicted_type": "fee_before_loan",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "s04",
+      "label": "scam",
+      "scam_type": "fee_before_loan",
+      "risk": "high",
+      "predicted_type": "fee_before_loan",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "s05",
+      "label": "scam",
+      "scam_type": "fee_before_loan",
+      "risk": "high",
+      "predicted_type": "fee_before_loan",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "s06",
+      "label": "scam",
+      "scam_type": "wrong_number_reversal",
+      "risk": "high",
+      "predicted_type": "wrong_number_reversal",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "s07",
+      "label": "scam",
+      "scam_type": "wrong_number_reversal",
+      "risk": "high",
+      "predicted_type": "wrong_number_reversal",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "s08",
+      "label": "scam",
+      "scam_type": "wrong_number_reversal",
+      "risk": "high",
+      "predicted_type": "wrong_number_reversal",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "s09",
+      "label": "scam",
+      "scam_type": "wrong_number_reversal",
+      "risk": "high",
+      "predicted_type": "fee_before_loan",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "s10",
+      "label": "scam",
+      "scam_type": "fake_prize_promo",
+      "risk": "high",
+      "predicted_type": "fake_prize_promo",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "s11",
+      "label": "scam",
+      "scam_type": "fake_prize_promo",
+      "risk": "high",
+      "predicted_type": "fake_prize_promo",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "s12",
+      "label": "scam",
+      "scam_type": "fake_prize_promo",
+      "risk": "high",
+      "predicted_type": "fake_prize_promo",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph",
+        "similar_messages"
+      ]
+    },
+    {
+      "id": "s13",
+      "label": "scam",
+      "scam_type": "fake_confirmation",
+      "risk": "high",
+      "predicted_type": "fake_confirmation",
+      "tools_used": [
+        "extract_entities",
+        "check_lender",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "s14",
+      "label": "scam",
+      "scam_type": "fake_confirmation",
+      "risk": "high",
+      "predicted_type": "fake_confirmation",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph",
+        "check_lender"
+      ]
+    },
+    {
+      "id": "s15",
+      "label": "scam",
+      "scam_type": "fake_confirmation",
+      "risk": "high",
+      "predicted_type": "fake_confirmation",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph",
+        "check_lender"
+      ]
+    },
+    {
+      "id": "s16",
+      "label": "scam",
+      "scam_type": "impersonation",
+      "risk": "high",
+      "predicted_type": "impersonation",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph",
+        "similar_messages"
+      ]
+    },
+    {
+      "id": "s17",
+      "label": "scam",
+      "scam_type": "impersonation",
+      "risk": "high",
+      "predicted_type": "impersonation",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "s18",
+      "label": "scam",
+      "scam_type": "impersonation",
+      "risk": "high",
+      "predicted_type": "fee_before_loan",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "s19",
+      "label": "scam",
+      "scam_type": "fake_job_or_visa_fee",
+      "risk": "high",
+      "predicted_type": "fake_job_or_visa_fee",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "s20",
+      "label": "scam",
+      "scam_type": "fake_job_or_visa_fee",
+      "risk": "high",
+      "predicted_type": "fake_job_or_visa_fee",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "s21",
+      "label": "scam",
+      "scam_type": "fake_job_or_visa_fee",
+      "risk": "high",
+      "predicted_type": "fake_job_or_visa_fee",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "s22",
+      "label": "scam",
+      "scam_type": "sim_swap_otp_request",
+      "risk": "high",
+      "predicted_type": "sim_swap_otp_request",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "s23",
+      "label": "scam",
+      "scam_type": "sim_swap_otp_request",
+      "risk": "high",
+      "predicted_type": "sim_swap_otp_request",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph",
+        "similar_messages"
+      ]
+    },
+    {
+      "id": "s24",
+      "label": "scam",
+      "scam_type": "sim_swap_otp_request",
+      "risk": "high",
+      "predicted_type": "sim_swap_otp_request",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "l01",
+      "label": "legit",
+      "scam_type": "legit_transaction",
+      "risk": "low",
+      "predicted_type": "legit_transaction",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "l02",
+      "label": "legit",
+      "scam_type": "legit_transaction",
+      "risk": "high",
+      "predicted_type": "fake_confirmation",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "l03",
+      "label": "legit",
+      "scam_type": "legit_transaction",
+      "risk": "medium",
+      "predicted_type": "fake_confirmation",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "l04",
+      "label": "legit",
+      "scam_type": "legit_transaction",
+      "risk": "high",
+      "predicted_type": "fake_confirmation",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph",
+        "check_lender"
+      ]
+    },
+    {
+      "id": "l05",
+      "label": "legit",
+      "scam_type": "legit_transaction",
+      "risk": "high",
+      "predicted_type": "fake_confirmation",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "l06",
+      "label": "legit",
+      "scam_type": "legit_transaction",
+      "risk": "high",
+      "predicted_type": "impersonation",
+      "tools_used": [
+        "extract_entities",
+        "check_lender",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "l07",
+      "label": "legit",
+      "scam_type": "legit_transaction",
+      "risk": "high",
+      "predicted_type": "fee_before_loan",
+      "tools_used": [
+        "extract_entities",
+        "check_lender"
+      ]
+    },
+    {
+      "id": "l08",
+      "label": "legit",
+      "scam_type": "legit_transaction",
+      "risk": "high",
+      "predicted_type": "sim_swap_otp_request",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "l09",
+      "label": "legit",
+      "scam_type": "legit_transaction",
+      "risk": "low",
+      "predicted_type": "legit_transaction",
+      "tools_used": [
+        "extract_entities"
+      ]
+    },
+    {
+      "id": "l10",
+      "label": "legit",
+      "scam_type": "none",
+      "risk": "low",
+      "predicted_type": "legit_transaction",
+      "tools_used": []
+    },
+    {
+      "id": "l11",
+      "label": "legit",
+      "scam_type": "none",
+      "risk": "low",
+      "predicted_type": "legit_transaction",
+      "tools_used": [
+        "extract_entities",
+        "similar_messages"
+      ]
+    },
+    {
+      "id": "l12",
+      "label": "legit",
+      "scam_type": "none",
+      "risk": "low",
+      "predicted_type": "legit_transaction",
+      "tools_used": []
+    },
+    {
+      "id": "l13",
+      "label": "legit",
+      "scam_type": "none",
+      "risk": "low",
+      "predicted_type": "legit_transaction",
+      "tools_used": []
+    },
+    {
+      "id": "l14",
+      "label": "legit",
+      "scam_type": "legit_transaction",
+      "risk": "low",
+      "predicted_type": "legit_transaction",
+      "tools_used": []
+    },
+    {
+      "id": "l15",
+      "label": "legit",
+      "scam_type": "none",
+      "risk": "low",
+      "predicted_type": "legit_transaction",
+      "tools_used": []
+    },
+    {
+      "id": "l16",
+      "label": "legit",
+      "scam_type": "none",
+      "risk": "low",
+      "predicted_type": "legit_transaction",
+      "tools_used": [
+        "extract_entities",
+        "similar_messages"
+      ]
+    },
+    {
+      "id": "s25",
+      "label": "scam",
+      "scam_type": "fee_before_loan",
+      "risk": "high",
+      "predicted_type": "fee_before_loan",
+      "tools_used": [
+        "extract_entities",
+        "check_lender",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "s26",
+      "label": "scam",
+      "scam_type": "sim_swap_otp_request",
+      "risk": "high",
+      "predicted_type": "sim_swap_otp_request",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "s27",
+      "label": "scam",
+      "scam_type": "fake_prize_promo",
+      "risk": "high",
+      "predicted_type": "fake_prize_promo",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph"
+      ]
+    },
+    {
+      "id": "s28",
+      "label": "scam",
+      "scam_type": "fake_confirmation",
+      "risk": "high",
+      "predicted_type": "wrong_number_reversal",
+      "tools_used": [
+        "extract_entities",
+        "lookup_graph",
+        "check_lender"
+      ]
+    }
+  ]
+}

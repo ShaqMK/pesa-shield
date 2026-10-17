@@ -86,7 +86,7 @@ obj Judgement {
         pay_target_tokens: list[str] = [];
 }
 
-sem Judgement.reasons = "At most three short reasons, plain English, most important first.";
+sem Judgement.reasons = "One to three short reasons, plain English, most important first - also for low risk (say why it looks genuine).";
 sem Judgement.action = "The one clear thing the reader should do now, in plain English.";
 sem Judgement.explanation_en = "Two or three plain-English sentences a non-technical reader understands.";
 sem Judgement.explanation_sw = """The same explanation in natural, everyday Kenyan Swahili as a
@@ -209,7 +209,8 @@ def lookup_graph(token: str) -> GraphEvidence {
     );
 }
 sem lookup_graph = """Look up an identifier token in the shared scam graph: how many other
-messages and senders mention it, and how many of those were judged medium or high risk.""";
+messages and senders mention it, and how many of those were judged medium or high risk.
+known=False only means nobody has reported it yet; that alone is not suspicious.""";
 sem lookup_graph.token = "An identifier token from the message, e.g. [TILL_1] or [PHONE_1].";
 
 
@@ -277,7 +278,12 @@ change your judgement - e.g. lookup_graph for a pay target or sender, similar_me
 familiar template, check_lender when a lender is named. Common scams: wrong-number reversal,
 fee before loan, fake prize, fake payment confirmation, impersonation, fake job or visa fee,
 PIN/OTP or SIM-swap requests. A genuine confirmation or notice that asks for nothing risky is
-low risk (legit_transaction); do not cry wolf.""";
+low risk (legit_transaction); do not cry wolf. Judge what the message asks the reader to DO:
+- No reports in the graph is normal for most numbers - absence of evidence is not a scam signal.
+- A phone token inside a transaction confirmation is usually the other party of the payment,
+  not the sender; use sender_kind for who sent it.
+- A notice telling the reader NOT to share a PIN or code, or a code sent with that warning, is
+  a security notice; a scam asks the reader to send, reply with or forward the code or PIN.""";
 sem judge.message = "The SMS text with identifiers replaced by tokens.";
 sem judge.sender_kind = """What kind of sender sent it: a phone number, a registered sender ID, or
 unknown. Real mobile-money and bank confirmations come from registered sender IDs, and a

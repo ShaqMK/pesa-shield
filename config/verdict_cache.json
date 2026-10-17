@@ -1,1 +1,518 @@
-{}
+{
+  "6a51116d6da53ae1f7c52b98e9cbc8075d09cf8e1f50703df3b600625e5f6fc2": {
+    "risk": "high",
+    "scam_type": "fee_before_loan",
+    "reasons": [
+      "The message requests a processing fee to be paid before the loan is disbursed, which is a common scam tactic."
+    ],
+    "action": "Do not proceed with any payment or sharing of personal information.",
+    "explanation_en": "This message is likely a scam as it asks for a processing fee before the loan is provided, which is a typical indicator of a fraudulent scheme.",
+    "explanation_sw": "Ujumbe huu ni wa udanganyifu kwani unahitaji malipo ya ada kabla ya mkopo kutolewa, ambayo ni kiashiria cha kawaida cha mpango wa udanganyifu.",
+    "pay_target_tokens": [
+      "[TILL_1]"
+    ]
+  },
+  "a72d5091b8f9d2a6486f35c823917c37de9f68809f3b0b4845efdb4d949cfcb6": {
+    "risk": "high",
+    "scam_type": "fee_before_loan",
+    "reasons": [
+      "The message requests a payment of Ksh 700 for insurance before the loan can be received, which is a common scam tactic."
+    ],
+    "action": "Do not proceed with any payment or sharing of personal information.",
+    "explanation_en": "This message is high risk as it asks for a fee before the loan is disbursed, which is a typical indicator of a scam.",
+    "explanation_sw": "Ujumbe huu una hatari kubwa kwani unahitaji ada kabla ya mkopo kutolewa, ambayo ni kiashiria cha kawaida cha udanganyifu.",
+    "pay_target_tokens": [
+      "[TILL_1]"
+    ]
+  },
+  "a9897a16e1ca6d5e29e69481e52df042598b1567b2397710bc1f3e3e7b1bf77a": {
+    "risk": "high",
+    "scam_type": "fee_before_loan",
+    "reasons": [
+      "The message requests a payment for activation before the loan is disbursed, which is a common scam tactic."
+    ],
+    "action": "Do not proceed with the payment.",
+    "explanation_en": "The request for an activation fee before receiving the loan is a typical indicator of a scam. Legitimate loans do not require upfront payments.",
+    "explanation_sw": "Ombi la malipo ya ada ya uanzishaji kabla ya kupokea mkopo ni kiashiria cha kawaida cha udanganyifu. Mikopo halali hailazimishi malipo ya awali.",
+    "pay_target_tokens": [
+      "[TILL_1]"
+    ]
+  },
+  "42bf2380bcd23a9bda84ba71c25eabd035b10f71764f269b586c044b0010a3d2": {
+    "risk": "high",
+    "scam_type": "fee_before_loan",
+    "reasons": [
+      "The message offers a loan with no CRB check, which is a common red flag for scams.",
+      "It requests an upfront payment (Ksh 1,200) as insurance to unlock the loan, which is a typical scam tactic."
+    ],
+    "action": "Do not engage with this message or send any money.",
+    "explanation_en": "The message is high risk due to its request for an upfront payment to unlock a loan, which is characteristic of scams.",
+    "explanation_sw": "Ujumbe huu ni hatari sana kwa sababu unahitaji malipo ya awali ili kufungua mkopo, ambayo ni tabia ya udanganyifu.",
+    "pay_target_tokens": [
+      "[TILL_1]"
+    ]
+  },
+  "bc4484e51795f50ba5eccedcff9500b7ac576025f78e79071d8355b19634510b": {
+    "risk": "high",
+    "scam_type": "fee_before_loan",
+    "reasons": [
+      "The message requests a registration fee before disbursing a loan, which is a common scam tactic."
+    ],
+    "action": "Do not engage with the sender or send any money.",
+    "explanation_en": "The message is asking for a fee before the loan is provided, which is a typical indicator of a scam. Legitimate lenders do not ask for upfront fees.",
+    "explanation_sw": "Ujumbe unahitaji ada kabla ya mkopo kutolewa, ambayo ni kiashiria cha kawaida cha udanganyifu. Wakopeshaji halali hawahitaji ada za awali.",
+    "pay_target_tokens": [
+      "[PHONE_1]"
+    ]
+  },
+  "c50b269dab764bf5946940626265db1efbdeb1bee9dbbcb92b3a7bd5088e690c": {
+    "risk": "high",
+    "scam_type": "wrong_number_reversal",
+    "reasons": [
+      "The message requests the recipient to reverse a payment that was supposedly sent by mistake."
+    ],
+    "action": "Do not respond or take any action requested in the message.",
+    "explanation_en": "This message is likely a scam as it asks you to reverse a payment that was not initiated by you, which is a common tactic used in scams.",
+    "explanation_sw": "Ujumbe huu ni uwezekano wa udanganyifu kwani unakuomba urudishe malipo ambayo hayakufanywa na wewe, ambayo ni mbinu ya kawaida inayotumiwa katika udanganyifu.",
+    "pay_target_tokens": [
+      "[PHONE_1]"
+    ]
+  },
+  "4f1fe5400dd00522196ba8dab40c131c01dc7015cf8e82ea288b9f5a6670bbee": {
+    "risk": "high",
+    "scam_type": "wrong_number_reversal",
+    "reasons": [
+      "The message requests a refund for a mistaken transaction, which is a common tactic used in scams."
+    ],
+    "action": "Do not respond or send any money.",
+    "explanation_en": "The message is likely a scam as it asks you to return money for a supposed mistake, which is a common tactic used in fraudulent schemes.",
+    "explanation_sw": "Ujumbe huu ni uwezekano wa udanganyifu kwani unakuomba urudishe pesa kwa kosa lililotokea, ambayo ni mbinu ya kawaida inayotumiwa katika mipango ya udanganyifu.",
+    "pay_target_tokens": [
+      "[PHONE_1]"
+    ]
+  },
+  "743c68a6f4378865bbd3fa0867cc0c57f51ac531b59b6ff46e50a59a1d1d9a6c": {
+    "risk": "high",
+    "scam_type": "wrong_number_reversal",
+    "reasons": [
+      "The message requests the recipient to return money sent by mistake, which is a common scam tactic."
+    ],
+    "action": "Do not respond or send any money.",
+    "explanation_en": "The message is asking you to return money that was supposedly sent by mistake, which is a common scam tactic. It is best not to engage with this request.",
+    "explanation_sw": "Ujumbe unakuomba urudishe pesa ambazo kwa kudhani zilitumwa kwa makosa, ambayo ni mbinu ya kawaida ya udanganyifu. Ni bora kutoshiriki na ombi hili.",
+    "pay_target_tokens": [
+      "[PHONE_1]"
+    ]
+  },
+  "2c95909d66cb0d8be714600686c30c2a3e897559a16ff0114060ce8a7eb990b6": {
+    "risk": "high",
+    "scam_type": "fee_before_loan",
+    "reasons": [
+      "The message claims a payment was received but immediately states it was a mistake, asking the recipient to send money back.",
+      "The sender is a phone number, which is not typical for legitimate mobile-money confirmations."
+    ],
+    "action": "Do not respond or send any money back.",
+    "explanation_en": "This message is likely a scam as it requests the recipient to send money back after claiming a mistaken payment, which is a common tactic in scams.",
+    "explanation_sw": "Ujumbe huu ni uwezekano wa udanganyifu kwani unamwomba mpokeaji arudishe pesa baada ya kudai kuwa malipo yalifanywa kwa makosa, ambayo ni mbinu ya kawaida katika udanganyifu.",
+    "pay_target_tokens": [
+      "[PHONE_1]"
+    ]
+  },
+  "aef22f4dd36741687cad84ad2555a40b8315dd94714b6025ef34e5faffdceca7": {
+    "risk": "high",
+    "scam_type": "fake_prize_promo",
+    "reasons": [
+      "The message claims the recipient has won a prize and requires payment of a clearance fee, which is a common scam tactic."
+    ],
+    "action": "Do not engage with the message or make any payments.",
+    "explanation_en": "This message is likely a scam as it asks for a payment to claim a prize, which is a typical characteristic of fake prize promotions.",
+    "explanation_sw": "Ujumbe huu ni uwezekano wa udanganyifu kwani unahitaji malipo ili kudai zawadi, ambayo ni sifa ya kawaida ya matangazo ya udanganyifu ya zawadi.",
+    "pay_target_tokens": [
+      "[TILL_1]"
+    ]
+  },
+  "0d8c1ba6f8968c1ace21d8ced9ba1411084c9e00182fe50f58081f0092180fc7": {
+    "risk": "high",
+    "scam_type": "fake_prize_promo",
+    "reasons": [
+      "The message claims the recipient has won a car and asks for a payment to claim it, which is a common scam tactic."
+    ],
+    "action": "Do not respond or send any money.",
+    "explanation_en": "This message is likely a scam as it promises a prize in exchange for a payment, which is a typical fake prize promotion scheme.",
+    "explanation_sw": "Ujumbe huu huenda ni udanganyifu kwani unahidi zawadi kwa kubadilishana na malipo, ambayo ni mpango wa kawaida wa udanganyifu wa zawadi.",
+    "pay_target_tokens": [
+      "[PHONE_1]"
+    ]
+  },
+  "50b60b19b16cc6b28634024cfe9e95e22f872754eefd94de250d236b6567a2ee": {
+    "risk": "high",
+    "scam_type": "fake_prize_promo",
+    "reasons": [
+      "The message claims the recipient has won a smartphone as part of a birthday promotion, which is a common tactic used in scams.",
+      "It instructs the recipient to click a link and provide their PIN, which is a red flag for phishing attempts."
+    ],
+    "action": "Do not engage with the message or click the link.",
+    "explanation_en": "The message is likely a scam as it promises a prize in exchange for personal information, which is a common tactic used by scammers.",
+    "explanation_sw": "Ujumbe huu ni wa udanganyifu kwani unatoa ahadi ya zawadi kwa kubadilishana na taarifa za kibinafsi, ambayo ni mbinu ya kawaida inayotumiwa na wadanganyifu.",
+    "pay_target_tokens": [
+      "[LINK_1]"
+    ]
+  },
+  "a9fe3d2e2c7cf94481af105c63ef6cc3f5e1b2bdf7531f4413a32e2dceb3d8c7": {
+    "risk": "high",
+    "scam_type": "impersonation",
+    "reasons": [
+      "The message claims a payment has been made but requests the recipient to send goods immediately, which is suspicious.",
+      "The sender is not a registered sender ID, indicating a high likelihood of impersonation."
+    ],
+    "action": "Do not act on this message.",
+    "explanation_en": "This message is likely a scam as it impersonates a payment confirmation while asking you to send goods immediately, which is a common tactic used in scams.",
+    "explanation_sw": "Ujumbe huu ni uwezekano wa udanganyifu kwani unajifanya kuwa uthibitisho wa malipo huku ukikuomba utume bidhaa mara moja, ambayo ni mbinu ya kawaida inayotumiwa katika udanganyifu.",
+    "pay_target_tokens": []
+  },
+  "2f8a7790ae32e255d18ebc1521fe4a8308fecd11c10de315da5c967024697743": {
+    "risk": "high",
+    "scam_type": "impersonation",
+    "reasons": [
+      "The message claims to confirm a payment but requests the recipient to send something, which is suspicious.",
+      "The sender is identified as a phone number, which is not typical for legitimate confirmations."
+    ],
+    "action": "Do not engage with the message or send any money.",
+    "explanation_en": "The message is likely a scam as it impersonates a payment confirmation while asking the recipient to send something, which is a common tactic used in scams.",
+    "explanation_sw": "Ujumbe huu ni uwezekano wa udanganyifu kwani unajifanya kuwa uthibitisho wa malipo huku ukimwomba mpokeaji kutuma kitu, ambayo ni mbinu ya kawaida inayotumiwa katika udanganyifu.",
+    "pay_target_tokens": []
+  },
+  "cd23d18422ccab86281a2f0054a975ec54bbe142bb8baa0e00af02fbda1c10ab": {
+    "risk": "high",
+    "scam_type": "fake_confirmation",
+    "reasons": [
+      "The message claims a payment has been made but requests the recipient to release an item, which is a common tactic in scams."
+    ],
+    "action": "Do not release any item or provide any information.",
+    "explanation_en": "The message is likely a scam as it falsely claims a payment confirmation and instructs the recipient to release an item, which is a typical scam behavior.",
+    "explanation_sw": "Ujumbe huu ni wa udanganyifu kwani unadai kuwa malipo yamefanywa na unamwambia mpokeaji aachilie kipande, ambayo ni tabia ya kawaida ya udanganyifu.",
+    "pay_target_tokens": []
+  },
+  "be41b0d883fbfc0f3739a773f1209f17e55995499a37ffe5b2720478ae6feff6": {
+    "risk": "high",
+    "scam_type": "impersonation",
+    "reasons": [
+      "The message claims to be from customer care but asks the recipient to call a phone number, which is a common tactic in impersonation scams."
+    ],
+    "action": "Do not call the number or provide any personal information.",
+    "explanation_en": "This message is likely a scam as it impersonates customer care and prompts the recipient to call a number, which is a common tactic used in scams.",
+    "explanation_sw": "Ujumbe huu ni uwezekano wa udanganyifu kwani unajifanya kuwa huduma kwa wateja na unamhimiza mpokeaji kupiga simu nambari, ambayo ni mbinu ya kawaida inayotumiwa katika udanganyifu.",
+    "pay_target_tokens": [
+      "[PHONE_1]"
+    ]
+  },
+  "65e040d16defb899513a01c3f5cf9929d97a1d433d58098cf2e4c8c986aa781f": {
+    "risk": "high",
+    "scam_type": "impersonation",
+    "reasons": [
+      "The message claims to be from a friend using a different phone, which is a common tactic in impersonation scams.",
+      "It requests money to be sent to a phone number, which is suspicious and indicative of a scam."
+    ],
+    "action": "Do not send money or respond to this message.",
+    "explanation_en": "The message is likely a scam as it impersonates a friend and requests money to be sent to an unknown number.",
+    "explanation_sw": "Ujumbe huu ni wa udanganyifu kwani unajifanya kuwa rafiki na unahitaji pesa zitumwe kwa nambari isiyojulikana.",
+    "pay_target_tokens": [
+      "[PHONE_1]"
+    ]
+  },
+  "29192ce404087f83c55771829138dbc7eba8db3c92170ca484d334ac78fda05c": {
+    "risk": "high",
+    "scam_type": "fee_before_loan",
+    "reasons": [
+      "The message demands payment of a tax penalty to avoid arrest, which is a common tactic used in scams."
+    ],
+    "action": "Do not pay or provide any personal information.",
+    "explanation_en": "The message is likely a scam as it pressures the recipient to pay a penalty to avoid arrest, which is a common tactic used in fraudulent communications.",
+    "explanation_sw": "Ujumbe huu ni wa udanganyifu kwani unamshinikiza mpokeaji kulipa faini ili kuepuka kukamatwa, ambayo ni mbinu ya kawaida inayotumiwa katika mawasiliano ya udanganyifu.",
+    "pay_target_tokens": [
+      "[TILL_1]",
+      "[ACCOUNT_1]"
+    ]
+  },
+  "3997aa94f30ea4cd0572e2a49b69ffd9bf06eae65c6de8d0658acff8323b5b3a": {
+    "risk": "high",
+    "scam_type": "fake_job_or_visa_fee",
+    "reasons": [
+      "The message requests payment for a medical and visa processing fee, which is a common scam tactic for fake job offers."
+    ],
+    "action": "Do not pay the fee or provide any personal information.",
+    "explanation_en": "This message is likely a scam as it asks for payment upfront for a job offer, which is a common tactic used in fake job or visa fee scams.",
+    "explanation_sw": "Ujumbe huu ni wa udanganyifu kwani unahitaji malipo kabla ya kazi, ambayo ni mbinu ya kawaida inayotumiwa katika udanganyifu wa kazi au ada ya visa.",
+    "pay_target_tokens": [
+      "[TILL_1]"
+    ]
+  },
+  "631b16c7b4bd97d6a3797b13e1fec6dc2eec264726e93d68f6d61eb723b66886": {
+    "risk": "high",
+    "scam_type": "fake_job_or_visa_fee",
+    "reasons": [
+      "Requests payment for a job application form.",
+      "No legitimate job should require payment for application.",
+      "Sender is a phone number, indicating a high risk of being a scam."
+    ],
+    "action": "Do not proceed with the payment or application.",
+    "explanation_en": "The message requests a payment for a job application, which is a common scam tactic. Legitimate job offers do not require payment for application forms.",
+    "explanation_sw": "Ujumbe unahitaji malipo kwa ajili ya maombi ya kazi, ambayo ni mbinu ya kawaida ya udanganyifu. Ofa halali za kazi hazihitaji malipo kwa fomu za maombi.",
+    "pay_target_tokens": [
+      "[PHONE_1]"
+    ]
+  },
+  "5eea98505348b0d0323da736a774d17179e88864053151d39794d04107a5804b": {
+    "risk": "high",
+    "scam_type": "fake_job_or_visa_fee",
+    "reasons": [
+      "The message asks for payment for training to secure a job, which is a common scam tactic."
+    ],
+    "action": "Do not engage or send any money.",
+    "explanation_en": "This message is likely a scam as it requests payment for training in order to secure a job, which is a common tactic used in fake job offers.",
+    "explanation_sw": "Ujumbe huu ni wa udanganyifu kwani unahitaji malipo kwa mafunzo ili kupata kazi, ambayo ni mbinu ya kawaida inayotumiwa katika ofa za kazi za uongo.",
+    "pay_target_tokens": [
+      "[TILL_1]"
+    ]
+  },
+  "64abc45c3e11f70a84d3b446b5ed0132ddf0ad73448a0d38fd1f6bc1d31b4e4f": {
+    "risk": "high",
+    "scam_type": "sim_swap_otp_request",
+    "reasons": [
+      "The message requests the recipient to forward a verification code, which is a common tactic used in SIM swap scams."
+    ],
+    "action": "Do not respond or forward any codes.",
+    "explanation_en": "This message is likely a scam as it asks you to forward a verification code, which can compromise your security.",
+    "explanation_sw": "Ujumbe huu ni uwezekano wa udanganyifu kwani unakuomba upeleke msimbo wa uthibitisho, ambao unaweza kuhatarisha usalama wako.",
+    "pay_target_tokens": []
+  },
+  "6ecd8b1d5081f717e39dcde0ee163542f74c978906c441ce1a495dd5374f3b7c": {
+    "risk": "high",
+    "scam_type": "impersonation",
+    "reasons": [
+      "The message requests the reader to send their PIN and ID number, which is a common tactic used in impersonation scams."
+    ],
+    "action": "Do not respond or provide any personal information.",
+    "explanation_en": "The message is asking for sensitive information (PIN and ID number) under the guise of account correction, which is a typical impersonation scam.",
+    "explanation_sw": "Ujumbe unahitaji taarifa nyeti (PIN na nambari ya kitambulisho) chini ya kivuli cha kurekebisha akaunti, ambayo ni udanganyifu wa kawaida wa kujifanya.",
+    "pay_target_tokens": []
+  },
+  "0c62957a20422c614fb6be4f2a1c82fce49d18b34ed38a2f3ba8f2f7417bedb9": {
+    "risk": "high",
+    "scam_type": "sim_swap_otp_request",
+    "reasons": [
+      "The message asks the reader to reply with a code sent by their network, which is a common tactic in SIM swap scams."
+    ],
+    "action": "Do not respond to the message or share any codes.",
+    "explanation_en": "The request to reply with a code is suspicious and indicative of a SIM swap scam, where the scammer attempts to gain control of your phone number.",
+    "explanation_sw": "Ombi la kujibu na nambari ni la kutatanisha na linaashiria udanganyifu wa kubadilisha SIM, ambapo mdanganyifu anajaribu kupata udhibiti wa nambari yako ya simu.",
+    "pay_target_tokens": []
+  },
+  "16bf7bef9aabb59ca137110dde9c6e8051213b6ed8e8df64fbb08c54a0e6c292": {
+    "risk": "low",
+    "scam_type": "legit_transaction",
+    "reasons": [],
+    "action": "none",
+    "explanation_en": "The message is a transaction confirmation with no requests for sensitive information or actions. It appears to be legitimate.",
+    "explanation_sw": "Ujumbe huu ni uthibitisho wa muamala bila maombi ya taarifa nyeti au hatua. Inaonekana kuwa halali.",
+    "pay_target_tokens": []
+  },
+  "1b11ceb60449e6f934f2290086f06b751a6e2dc793665b2ded3c330dbb7468ed": {
+    "risk": "medium",
+    "scam_type": "fake_confirmation",
+    "reasons": [
+      "The message claims to be a confirmation of a transaction but comes from an unknown phone number rather than a registered sender ID."
+    ],
+    "action": "Do not engage with the message or act on it.",
+    "explanation_en": "The message appears to be a fake confirmation as it does not come from a registered sender ID, which is typical for legitimate mobile-money transactions.",
+    "explanation_sw": "Ujumbe huu unaonekana kuwa uthibitisho wa uwongo kwani haujatoka kwa kitambulisho kilichosajiliwa, ambacho ni cha kawaida kwa muamala halali wa pesa za simu.",
+    "pay_target_tokens": [
+      "[PHONE_1]"
+    ]
+  },
+  "27f51752d53138b9879e03fe317824c836a9f1d6b8d060b6fe7c67c7670cc800": {
+    "risk": "low",
+    "scam_type": "legit_transaction",
+    "reasons": [],
+    "action": "No action needed.",
+    "explanation_en": "The message is a legitimate transaction confirmation with no requests for sensitive information or actions that could indicate a scam.",
+    "explanation_sw": "Ujumbe huu ni uthibitisho halali wa muamala bila maombi ya taarifa nyeti au hatua ambazo zinaweza kuashiria udanganyifu.",
+    "pay_target_tokens": []
+  },
+  "9610bed08418787c4cbf362be818b2fd8b743fa54ace83a7a28f07034783f882": {
+    "risk": "medium",
+    "scam_type": "fake_confirmation",
+    "reasons": [
+      "The message claims to be a confirmation of a payment but comes from an unknown phone number, which is a common sign of a scam."
+    ],
+    "action": "Do not engage with the message or provide any personal information.",
+    "explanation_en": "The message appears to be a fake confirmation as it is sent from an unknown phone number, which is not typical for legitimate transactions.",
+    "explanation_sw": "Ujumbe huu unaonekana kuwa uthibitisho wa uwongo kwani umetumwa kutoka kwa nambari isiyojulikana, ambayo si ya kawaida kwa miamala halali.",
+    "pay_target_tokens": [
+      "[PHONE_1]"
+    ]
+  },
+  "312065d7cf0d0d0e8049be140d76ad831e4f338d6d1b777ce827d93aa165c11a": {
+    "risk": "low",
+    "scam_type": "legit_transaction",
+    "reasons": [],
+    "action": "none",
+    "explanation_en": "The message is a transaction confirmation with no requests for sensitive information or actions. It appears to be legitimate.",
+    "explanation_sw": "Ujumbe huu ni uthibitisho wa muamala bila maombi ya taarifa nyeti au hatua. Inaonekana kuwa halali.",
+    "pay_target_tokens": []
+  },
+  "5d16c622436b57be817ee72c24b8e8c493f48d4dab98b2af66268ffa8c9fab9f": {
+    "risk": "low",
+    "scam_type": "legit_transaction",
+    "reasons": [],
+    "action": "No action needed.",
+    "explanation_en": "The message is a legitimate transaction confirmation from a registered sender, indicating a salary credit and advising not to share the PIN, which is standard security practice.",
+    "explanation_sw": "Ujumbe huu ni uthibitisho halali wa muamala kutoka kwa mtumaji aliyeandikishwa, ukionyesha mkopo wa mshahara na kushauri kutoshiriki PIN, ambayo ni mazoea ya kawaida ya usalama.",
+    "pay_target_tokens": []
+  },
+  "93a1c6febe265c63523fb4097eb110e184774d45351b71c7cbb7b3312bcc530f": {
+    "risk": "low",
+    "scam_type": "legit_transaction",
+    "reasons": [],
+    "action": "none",
+    "explanation_en": "The message is a legitimate loan repayment reminder from a licensed lender, asking the recipient to repay via their app or a specified Paybill, without requesting any sensitive information.",
+    "explanation_sw": "Ujumbe huu ni ukumbusho halali wa malipo ya mkopo kutoka kwa mkopeshaji aliyeidhinishwa, ukimwambia mpokeaji alipe kupitia programu yao au Paybill iliyoainishwa, bila kuomba taarifa nyeti yoyote.",
+    "pay_target_tokens": []
+  },
+  "edc3ba22aa0f83f6595bc4e514b8972dea9891665319ee441780bf563ad2d8c2": {
+    "risk": "low",
+    "scam_type": "legit_transaction",
+    "reasons": [],
+    "action": "No action needed",
+    "explanation_en": "The message is a legitimate security notice from a bank regarding a one-time password (OTP) that should not be shared. It does not ask the reader to take any risky action.",
+    "explanation_sw": "",
+    "pay_target_tokens": []
+  },
+  "978f910fc93168deb3d67cbcfc8f9354bcdbd14273df60fff22795a874269e02": {
+    "risk": "low",
+    "scam_type": "legit_transaction",
+    "reasons": [],
+    "action": "none",
+    "explanation_en": "The message confirms a payment for electricity and does not ask for any sensitive information or action from the recipient, indicating it is a legitimate transaction.",
+    "explanation_sw": "Ujumbe unathibitisha malipo ya umeme na hauuombi mpokeaji kutoa taarifa yoyote nyeti au kuchukua hatua, ikionyesha kuwa ni muamala halali.",
+    "pay_target_tokens": []
+  },
+  "3fb5591c5f4cade5de5ccb2599259bd875e149b7bd322748c5a055b49a5d6783": {
+    "risk": "low",
+    "scam_type": "legit_transaction",
+    "reasons": [],
+    "action": "No action needed",
+    "explanation_en": "The message is a legitimate notice about a church meeting and does not ask for any sensitive information or actions that could be risky.",
+    "explanation_sw": "Ujumbe ni taarifa halali kuhusu mkutano wa kanisa na hauhitaji taarifa nyeti au hatua zozote zinazoweza kuwa hatari.",
+    "pay_target_tokens": []
+  },
+  "2d238c395b409e5aa77745655185fce7ec6cfe7ef309e495568d523a3a4bbed4": {
+    "risk": "low",
+    "scam_type": "none",
+    "reasons": [
+      "No suspicious requests or actions are asked of the reader."
+    ],
+    "action": "none",
+    "explanation_en": "The message does not ask for any sensitive information or actions that could indicate a scam.",
+    "explanation_sw": "Ujumbe hauhitaji taarifa yoyote nyeti au hatua ambazo zinaweza kuashiria udanganyifu.",
+    "pay_target_tokens": []
+  },
+  "e9c647f0c82d60873b08acae9f68fecc0f3023cd892080f565b8e760d550e3ec": {
+    "risk": "low",
+    "scam_type": "legit_transaction",
+    "reasons": [],
+    "action": "No action needed.",
+    "explanation_en": "The message is a legitimate notification about a package arrival, asking the recipient to collect it with their ID and stating that no payment is needed.",
+    "explanation_sw": "Ujumbe ni taarifa halali kuhusu kuwasili kwa kifurushi, ukimwambia mpokeaji akichukue na kitambulisho chake na kusema kuwa hakuna malipo yanayohitajika.",
+    "pay_target_tokens": []
+  },
+  "435f1b0476aa7604aea037e8e10fc5b4b9a2c4db0255aa08175466da05521df5": {
+    "risk": "low",
+    "scam_type": "legit_transaction",
+    "reasons": [],
+    "action": "No action needed.",
+    "explanation_en": "The message is a notification about students returning home early for a teachers' meeting, which does not ask for any sensitive information or actions.",
+    "explanation_sw": "Ujumbe huu ni taarifa kuhusu wanafunzi kurudi nyumbani mapema kwa ajili ya mkutano wa walimu, ambao hauhitaji taarifa nyeti au hatua zozote.",
+    "pay_target_tokens": []
+  },
+  "cadee3f11659b409dfe697a00f943df548348a4e7ab1b7b9db3b956f8051f02a": {
+    "risk": "low",
+    "scam_type": "legit_transaction",
+    "reasons": [],
+    "action": "No action needed.",
+    "explanation_en": "This message is a legitimate transaction confirmation for the purchase of airtime, indicating no suspicious activity.",
+    "explanation_sw": "Ujumbe huu ni uthibitisho halali wa muamala wa ununuzi wa muda wa hewani, ukionyesha hakuna shughuli za kushuku.",
+    "pay_target_tokens": []
+  },
+  "2294831250c17f80ef52936b117915c3dac615acfe697c2e3dd0b4e3d325cefc": {
+    "risk": "low",
+    "scam_type": "legit_transaction",
+    "reasons": [],
+    "action": "No action needed.",
+    "explanation_en": "The message is a security notice reminding users not to share their M-PESA PIN or any codes, which is standard practice for protecting user information.",
+    "explanation_sw": "Ujumbe huu ni taarifa ya usalama ikikumbusha watumiaji wasishiriki PIN yao ya M-PESA au nambari zozote, ambayo ni kawaida katika kulinda taarifa za mtumiaji.",
+    "pay_target_tokens": []
+  },
+  "48bf17dc1893c312aad0ff0916743227d35e28f2bdcffbd52da44ba5dd370ed9": {
+    "risk": "low",
+    "scam_type": "legit_transaction",
+    "reasons": [
+      "The message does not ask for any sensitive information or action that could be risky."
+    ],
+    "action": "No action needed.",
+    "explanation_en": "The message is a simple confirmation without any requests for sensitive information or actions.",
+    "explanation_sw": "Ujumbe ni uthibitisho rahisi bila maombi ya taarifa nyeti au vitendo.",
+    "pay_target_tokens": []
+  },
+  "7bc7b6bc933980d8afaa954705060f164d16942f0f4c0621c1f505b38b39a5da": {
+    "risk": "high",
+    "scam_type": "fee_before_loan",
+    "reasons": [
+      "The message requests a fee to activate a loan limit, which is a common scam tactic."
+    ],
+    "action": "Do not pay the fee or provide any personal information.",
+    "explanation_en": "The message is asking for a payment to activate a loan limit, which is a typical scam approach. Legitimate lenders do not ask for fees upfront in this manner.",
+    "explanation_sw": "Ujumbe unahitaji malipo ili kuanzisha kikomo cha mkopo, ambayo ni njia ya kawaida ya udanganyifu. Wakopeshaji halali hawahitaji malipo kabla katika njia hii.",
+    "pay_target_tokens": [
+      "[PHONE_1]"
+    ]
+  },
+  "319a7f71f4f23621963dd0d4dcde571b163ee00e467253645659776e3cc854f8": {
+    "risk": "high",
+    "scam_type": "impersonation",
+    "reasons": [
+      "The message asks the reader to reply with a 6-digit code and ATM PIN, which is a common tactic used in impersonation scams."
+    ],
+    "action": "Do not respond to the message or provide any personal information.",
+    "explanation_en": "This message is likely a scam as it requests sensitive information (6-digit code and ATM PIN) under the guise of blocking an unusual login. Legitimate organizations will never ask for such information via SMS.",
+    "explanation_sw": "Ujumbe huu ni uwezekano wa udanganyifu kwani unahitaji taarifa nyeti (nambari ya kidijitali 6 na PIN ya ATM) kwa kujiweka kama kuzuia kuingia kwa kawaida. Taasisi halali hazitawahi kuomba taarifa kama hizo kupitia SMS.",
+    "pay_target_tokens": []
+  },
+  "f7d60154e945a9e78d2c1d640bbf3e4213e478df26883cc10eacdc67bb91bfe4": {
+    "risk": "high",
+    "scam_type": "fake_prize_promo",
+    "reasons": [
+      "The message claims the recipient has won money in a lottery, which is a common scam tactic.",
+      "It requests a payment to claim the prize, which is a red flag for scams."
+    ],
+    "action": "Do not engage with the message or make any payments.",
+    "explanation_en": "The message is likely a scam as it promises a prize in exchange for a payment, which is a common tactic used in fraudulent schemes.",
+    "explanation_sw": "Ujumbe huu ni wa udanganyifu kwani unahidi zawadi kwa kubadilishana na malipo, ambayo ni mbinu ya kawaida inayotumiwa katika mipango ya udanganyifu.",
+    "pay_target_tokens": [
+      "[TILL_1]"
+    ]
+  },
+  "acacc4ad407f798d745b0489cc234f499d29fa095346f0a3cbef70b9c54a9486": {
+    "risk": "high",
+    "scam_type": "fee_before_loan",
+    "reasons": [
+      "The message claims a payment was sent in error and requests a reversal to avoid blocking the line, which is a common tactic in scams."
+    ],
+    "action": "Do not respond or reverse any payment.",
+    "explanation_en": "This message is high risk as it asks you to reverse a payment to avoid consequences, which is a typical scam approach.",
+    "explanation_sw": "Ujumbe huu ni hatari sana kwani unakuomba urudishe malipo ili kuepuka matokeo mabaya, ambayo ni mbinu ya kawaida ya udanganyifu.",
+    "pay_target_tokens": [
+      "[PHONE_1]"
+    ]
+  }
+}

@@ -68,28 +68,6 @@ def score(rows: list[dict]) -> dict {
 }
 
 
-"""Load KEY=VALUE lines from the project .env into the environment
-(existing variables win). Values are never printed."""
-def load_dotenv {
-    path = os.path.join(_ROOT, ".env");
-    if not os.path.exists(path) {
-        return;
-    }
-    with open(path, encoding="utf-8") as f {
-        for line in f.read().splitlines() {
-            line = line.strip();
-            if not line or line.startswith("#") or "=" not in line {
-                continue;
-            }
-            (k, v) = line.split("=", 1);
-            if k.strip() and not os.environ.get(k.strip()) {
-                os.environ[k.strip()] = v.strip().strip('"').strip("'");
-            }
-        }
-    }
-}
-
-
 def _judgement_dict(result: any) -> dict {
     j = result.judgement;
     return {
@@ -101,6 +79,24 @@ def _judgement_dict(result: any) -> dict {
         "explanation_sw": j.explanation_sw,
         "pay_target_tokens": j.pay_target_tokens
     };
+}
+
+
+"""Keep earlier live evals: copy data/live_eval.json into
+data/live_eval_history/ (named by its run time) before it is overwritten."""
+def _archive_previous_run {
+    if not os.path.exists(LIVE_EVAL_PATH) {
+        return;
+    }
+    with open(LIVE_EVAL_PATH, encoding="utf-8") as f {
+        previous = json.load(f) as dict;
+    }
+    history = os.path.join(_ROOT, "data", "live_eval_history");
+    os.makedirs(history, exist_ok=True);
+    name = "live_eval_" + str(previous.get("run_at", "unknown")).replace(":", "-") + ".json";
+    with open(os.path.join(history, name), "w", encoding="utf-8") as f {
+        json.dump(previous, f, indent=2, ensure_ascii=False);
+    }
 }
 
 
@@ -130,9 +126,10 @@ def live_eval -> int {
     import from endpoints { IngestMessage, Reset }
     import from guard { GuardResult, apply_verdict, run_guard }
     import from graph { Message }
-    load_dotenv();
+    # jac.toml resolves ${OPENAI_API_KEY} when jac starts, so the key must be
+    # in the environment before `jac run` (see README: "Load .env").
     if not os.environ.get("OPENAI_API_KEY") {
-        print("OPENAI_API_KEY is not set (env or .env) - the live eval needs the real LLM.");
+        print("OPENAI_API_KEY is not set - load .env into the environment first (README).");
         return 2;
     }
     # Local, in-process run: throwaway secrets unless the env provides them.
@@ -181,6 +178,7 @@ def live_eval -> int {
         **summary,
         "results": rows
     };
+    _archive_previous_run();
     with open(LIVE_EVAL_PATH, "w", encoding="utf-8") as f {
         json.dump(report_doc, f, indent=2, ensure_ascii=False);
     }
